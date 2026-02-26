@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* =============================================
+   MOVIEAPP DESIGN SYSTEM — THEME VARIABLES
+   ============================================= */
+@theme {
+  /* Colors — Background */
+  --color-bg-primary: #070A10;
+  --color-bg-secondary: #0A1018;
+  --color-bg-tertiary: #0D1520;
+
+  /* Colors — Surface */
+  --color-surface-1: #0D1520;
+  --color-surface-2: #1A2535;
+
+  /* Colors — Text */
+  --color-text-primary: #F0F4FF;
+  --color-text-secondary: #8A9AB5;
+  --color-text-muted: #3A4A60;
+
+  /* Colors — Accent */
+  --color-accent: #BBFF00;
+  --color-accent-hover: #AADD00;
+  --color-accent-glow: rgba(204, 255, 0, 0.25);
+
+  /* Colors — States */
+  --color-heart: #FF4D6D;
+  --color-border: rgba(204, 255, 0, 0.1);
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* Transitions */
+  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* =============================================
+   BASE STYLES
+   ============================================= */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100svh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =============================================
+   SCROLLBAR
+   ============================================= */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-2);
+  border-radius: 3px;
+}
+
+/* =============================================
+   ANIMATED BACKGROUND GRADIENT
+   ============================================= */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 20%, rgba(10, 25, 60, 0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(5, 15, 40, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 60% 10%, rgba(204, 255, 0, 0.03) 0%, transparent 50%),
+    var(--color-bg-primary);
+  animation: bgShift 20s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes bgShift {
+  0%   { opacity: 0.8; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+/* =============================================
+   UTILITY — HIDE SCROLLBAR ON GALLERIES
+   ============================================= */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
