@@ -176,3 +176,29 @@ export const cardEntry: Variants = {
     },
   }),
 };
+
+/* =============================================
+   GENRE FILTER — CARD LAYOUT ANIMATION
+   Animate card reorder on filter change
+   ============================================= */
+export const filterCard: Variants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.9,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: [0.215, 0.61, 0.355, 1],
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};

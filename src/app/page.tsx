@@ -3,6 +3,7 @@ import HeroBanner from "@/components/layout/HeroBanner";
 import MovieGallery from "@/components/layout/MovieGallery";
 import movies from "@/data/movies.json";
 import { Movie } from "@/types/movie";
+import GenreFilter from "@/components/layout/GenreFilter";
 
 /* =============================================
    DATA FILTERING
@@ -42,9 +43,12 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero banner */}
+      {/* Hero banner - mobile & desktop */}
       <HeroBanner movies={heroMovies} />
-
+      {/* Hero fullscreen — desktop only */}
+      {/* <div className="hidden md:block">
+            <Hero movies={heroMovies} />
+          </div> */}
       {/* Galleries */}
       <MovieGallery title="Ultime uscite" movies={latestMovies} />
       <MovieGallery title="Prossime uscite" movies={upcomingMovies} />
@@ -52,19 +56,7 @@ export default function Home() {
       <MovieGallery title="Serie più votate" movies={topRatedSeries} />
       <MovieGallery title="Film premiati" movies={awardFilms} />
       <MovieGallery title="Serie premiate" movies={awardSeries} />
+      <GenreFilter movies={allMovies} />;
     </>
   );
-}
-
-{
-  /* Hero fullscreen — desktop only */
-}
-{
-  /* <div className="hidden md:block">
-  <Hero movies={heroMovies} />
-</div> */
-}
-
-{
-  /* Hero banner — mobile & desktop */
 }
