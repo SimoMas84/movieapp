@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { Home, Heart, Bookmark, Video, Users } from "lucide-react";
+import { Home, Heart, Bookmark, Video, Users, Film, Tv } from "lucide-react";
 
 /* =============================================
    NAVIGATION LINKS DATA
    ============================================= */
 const navLinks = [
   { title: "Home", href: "/", icon: Home },
-  { title: "Preferiti", href: "/favorites", icon: Heart },
-  { title: "Watchlist", href: "/watchlist", icon: Bookmark },
+  { title: "Film", href: "/films", icon: Film },
+  { title: "Serie TV", href: "/series", icon: Tv },
   { title: "Registi", href: "/directors", icon: Video },
   { title: "Attori", href: "/actors", icon: Users },
+  { title: "Watchlist", href: "/watchlist", icon: Bookmark },
+  { title: "Preferiti", href: "/favorites", icon: Heart },
 ];
 
 /* =============================================
@@ -18,7 +20,7 @@ const navLinks = [
    ============================================= */
 export default function NavDesktop() {
   return (
-    <nav className="flex items-center gap-8">
+    <nav className="flex items-center gap-6">
       {navLinks.map((link) => {
         const Icon = link.icon;
         return (

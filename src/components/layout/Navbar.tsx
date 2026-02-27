@@ -24,25 +24,23 @@ export default function Navbar() {
           Movie<span className="text-text-primary">App</span>
         </Link>
 
-        {/* Desktop nav — hidden on mobile */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Desktop nav — hidden on mobile and tablet */}
+        <div className="hidden lg:flex items-center gap-8">
           <NavDesktop />
-
-          {/* Login button */}
           <Link
             href="/login"
-            className="h-10 flex items-center gap-2 text-sm font-medium px-4 rounded-xl bg-accent border border-accent text-surface-1 hover:border-accent hover:scale-110 transition-all duration-300"
+            className="h-10 flex items-center gap-2 text-sm font-medium px-4 rounded-xl bg-accent text-bg-primary hover:scale-105 transition-all duration-300"
           >
             <User size={15} />
             Accedi
           </Link>
         </div>
 
-        {/* Mobile — login + menu button */}
-        <div className="flex md:hidden items-center gap-8">
+        {/* Mobile and tablet — login + menu button */}
+        <div className="flex lg:hidden items-center gap-8">
           <Link
             href="/login"
-            className="h-10 flex items-center gap-2 text-sm font-medium px-4 rounded-xl bg-accent border border-accent text-surface-1 hover:border-border-subtle hover:text-text-secondary transition-all duration-300"
+            className="h-10 flex items-center gap-2 text-sm font-medium px-4 rounded-xl bg-accent text-bg-primary hover:scale-105 transition-all duration-300"
           >
             <User size={15} />
             Accedi
