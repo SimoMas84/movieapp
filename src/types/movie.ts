@@ -1,7 +1,3 @@
-/* =============================================
-   MOVIEAPP — MOVIE TYPES
-   ============================================= */
-
 export interface Movie {
   id: number;
   title: string;
@@ -16,9 +12,6 @@ export interface Movie {
   plot: string;
   cast: string[];
   awards: string[];
-  upcoming?: boolean;
-}
-
-export interface HeroMovie extends Movie {
-  badge: string;
+  upcoming: boolean;
+  type: "film" | "serie";
 }

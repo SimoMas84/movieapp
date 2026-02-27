@@ -6,6 +6,10 @@
 
 import { Variants } from 'motion/react';
 
+/* =============================================
+   NAVBAR — MOBILE MENU CONTAINER
+   Expands from 0x0 to full size
+   ============================================= */
 export const menuContainer: Variants = {
   open: {
     width: '320px',
@@ -63,6 +67,9 @@ export const navLinkVariants: Variants = {
   },
 };
 
+/* =============================================
+   NAVBAR — HAMBURGER BUTTON SLIDER
+   ============================================= */
 export const buttonSlider = {
   open: {
     top: '-100%' as string,
@@ -73,3 +80,79 @@ export const buttonSlider = {
     transition: { duration: 0.5, type: 'tween' as const, ease: [0.76, 0, 0.24, 1] },
   },
 } as const;
+
+/* =============================================
+   NAVBAR — HAMBURGER LINES
+   ============================================= */
+export const hamburgerTop = (isOpen: boolean) => ({
+  rotate: isOpen ? 45 : 0,
+  y: isOpen ? 0 : -16,
+  transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] as const },
+});
+
+export const hamburgerMiddle = (isOpen: boolean) => ({
+  opacity: isOpen ? 0 : 1,
+  scaleX: isOpen ? 0 : 1,
+  transition: { duration: 0.2, ease: "easeInOut" as const },
+});
+
+export const hamburgerBottom = (isOpen: boolean) => ({
+  rotate: isOpen ? -45 : 0,
+  y: isOpen ? 0 : 16,
+  transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] as const },
+});
+
+/* =============================================
+   MODAL — BACKDROP
+   Fade in/out
+   ============================================= */
+export const modalBackdrop: Variants = {
+  hidden: {
+    opacity: 0,
+    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
+  },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
+  },
+};
+
+/* =============================================
+   MODAL — PANEL
+   Expands from 0x0 like mobile menu
+   ============================================= */
+export const modalPanel: Variants = {
+  hidden: {
+    scale: 0,
+    opacity: 0,
+    transition: {
+      duration: 0.5,
+      type: 'tween',
+      ease: [0.76, 0, 0.24, 1],
+    },
+  },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      type: 'tween',
+      ease: [0.76, 0, 0.24, 1],
+    },
+  },
+};
+
+/* =============================================
+   MODAL — WRAPPER
+   Fade in/out for the outer container
+   ============================================= */
+export const modalWrapper: Variants = {
+  hidden: {
+    opacity: 0,
+    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
+  },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
+  },
+};

@@ -12,9 +12,9 @@ import NavMobile from "./NavMobile";
    ============================================= */
 export default function Navbar() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+    <header className="flex fixed top-0 left-0 right-0 h-20 z-50 px-6 bg-bg-primary/80 backdrop-blur-md border-b border-border-subtle">
       {/* Inner container */}
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
+      <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Logo */}
         <Link
           href="/"
