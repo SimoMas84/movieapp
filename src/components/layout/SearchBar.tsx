@@ -10,13 +10,6 @@ import { searchDropdown, searchPanel } from "@/lib/animations";
 import MovieModal from "@/components/ui/MovieModal";
 
 /* =============================================
-   PROPS INTERFACE
-   ============================================= */
-interface SearchBarProps {
-  movies: Movie[];
-}
-
-/* =============================================
    CONSTANTS
    ============================================= */
 const MIN_QUERY_LENGTH = 2;
@@ -25,9 +18,10 @@ const MAX_RESULTS = 6;
 /* =============================================
    SEARCH BAR COMPONENT
    Expanding search input in navbar with
-   live dropdown results and MovieModal
+   live search on TMDB full database
+   and MovieModal on result click
    ============================================= */
-export default function SearchBar({ movies }: SearchBarProps) {
+export default function SearchBar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>("");
   const [results, setResults] = useState<Movie[]>([]);
@@ -35,24 +29,21 @@ export default function SearchBar({ movies }: SearchBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /* ── Search logic ── */
-  const handleSearch = useCallback(
-    (value: string) => {
-      setQuery(value);
-      if (value.length < MIN_QUERY_LENGTH) {
-        setResults([]);
-        return;
-      }
-      const filtered = movies.filter(
-        (m) =>
-          m.title.toLowerCase().includes(value.toLowerCase()) ||
-          m.director.toLowerCase().includes(value.toLowerCase()) ||
-          m.genre.some((g) => g.toLowerCase().includes(value.toLowerCase())),
-      );
-      setResults(filtered.slice(0, MAX_RESULTS));
-    },
-    [movies],
-  );
+  /* ── Search logic — calls TMDB via API route ── */
+  const handleSearch = useCallback(async (value: string) => {
+    setQuery(value);
+    if (value.length < MIN_QUERY_LENGTH) {
+      setResults([]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(value)}`);
+      const { results } = await res.json();
+      setResults(results.slice(0, MAX_RESULTS));
+    } catch {
+      setResults([]);
+    }
+  }, []);
 
   /* ── Open search and focus input ── */
   const handleOpen = useCallback(() => {
@@ -67,10 +58,18 @@ export default function SearchBar({ movies }: SearchBarProps) {
     setResults([]);
   }, []);
 
-  /* ── Select movie from results ── */
+  /* ── Select movie — fetch trailer and open modal ── */
   const handleSelect = useCallback(
-    (movie: Movie) => {
-      setSelectedMovie(movie);
+    async (movie: Movie) => {
+      try {
+        const res = await fetch(
+          `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
+        );
+        const { trailerKey } = await res.json();
+        setSelectedMovie({ ...movie, trailerKey });
+      } catch {
+        setSelectedMovie(movie);
+      }
       handleClose();
     },
     [handleClose],
@@ -308,6 +307,7 @@ export default function SearchBar({ movies }: SearchBarProps) {
 //     [handleClose],
 //   );
 
+//   /* ── Close modal ── */
 //   const handleModalClose = useCallback(() => {
 //     setSelectedMovie(null);
 //   }, []);
@@ -364,10 +364,10 @@ export default function SearchBar({ movies }: SearchBarProps) {
 //         {isOpen && (
 //           <motion.div
 //             className="fixed left-0 right-0 top-20 z-50 px-4 md:px-10 py-4 bg-bg-primary/95 backdrop-blur-md border-b border-border-subtle"
-//             initial={{ opacity: 0, y: -10 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             exit={{ opacity: 0, y: -10 }}
-//             transition={{ duration: 0.3, ease: [0.76, 0, 0.24, 1] }}
+//             variants={searchPanel}
+//             initial="hidden"
+//             animate="visible"
+//             exit="hidden"
 //           >
 //             {/* Input */}
 //             <div className="flex items-center gap-3 bg-surface-1 border border-border-subtle rounded-xl px-4 h-12 max-w-2xl mx-auto">
@@ -441,6 +441,16 @@ export default function SearchBar({ movies }: SearchBarProps) {
 //                 </motion.div>
 //               )}
 //             </AnimatePresence>
+
+//             {/* ── No results ── */}
+//             {query.length >= MIN_QUERY_LENGTH && results.length === 0 && (
+//               <div className="mt-2 bg-surface-1 border border-border-subtle rounded-xl px-4 py-6 max-w-2xl mx-auto text-center">
+//                 <p className="text-text-muted text-sm">
+//                   Nessun risultato per{" "}
+//                   <span className="text-text-primary">"{query}"</span>
+//                 </p>
+//               </div>
+//             )}
 //           </motion.div>
 //         )}
 //       </AnimatePresence>

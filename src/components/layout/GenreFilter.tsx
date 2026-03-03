@@ -6,6 +6,7 @@ import MovieCard from "@/components/cards/MovieCard";
 import MovieModal from "@/components/ui/MovieModal";
 import { Movie } from "@/types/movie";
 import { filterCard } from "@/lib/animations";
+import { getMovieVideos, getSeriesVideos } from "@/lib/tmdb";
 
 /* =============================================
    PROPS INTERFACE
@@ -64,8 +65,17 @@ export default function GenreFilter({ movies }: GenreFilterProps) {
     );
   }, []);
 
-  const handleSelect = useCallback((movie: Movie) => {
-    setSelectedMovie(movie);
+  /* ── Fetch trailer and open modal ── */
+  const handleSelect = useCallback(async (movie: Movie) => {
+    try {
+      const res = await fetch(
+        `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
+      );
+      const { trailerKey } = await res.json();
+      setSelectedMovie({ ...movie, trailerKey });
+    } catch {
+      setSelectedMovie(movie);
+    }
   }, []);
 
   const handleClose = useCallback(() => {

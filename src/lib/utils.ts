@@ -53,3 +53,27 @@ export const getInitials = (name: string): string => {
     .toUpperCase()
     .slice(0, 2);
 };
+
+import { TMDBMovie } from "@/lib/tmdb";
+import { Movie } from "@/types/movie";
+
+export function toMovie(m: TMDBMovie, genres: Record<number, string>): Movie {
+  const isTV = !m.title;
+  return {
+    id: m.id,
+    title: m.title ?? m.name ?? "",
+    originalTitle: m.original_title ?? m.original_name ?? "",
+    year: new Date(m.release_date ?? m.first_air_date ?? "").getFullYear(),
+    director: "",
+    genre: m.genre_ids?.map((id) => genres[id]).filter(Boolean) ?? [],
+    rating: Math.round(m.vote_average * 10) / 10,
+    poster: m.poster_path,
+    backdrop: m.backdrop_path,
+    trailerKey: null,
+    plot: m.overview,
+    cast: [],
+    awards: [],
+    upcoming: false,
+    type: isTV ? "serie" : "film",
+  };
+}
