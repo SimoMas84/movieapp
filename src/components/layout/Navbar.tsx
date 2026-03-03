@@ -4,6 +4,9 @@ import Link from "next/link";
 import { Play, User } from "lucide-react";
 import NavDesktop from "./NavDesktop";
 import NavMobile from "./NavMobile";
+import SearchBar from "@/components/layout/SearchBar";
+import movies from "@/data/movies.json";
+import { Movie } from "@/types/movie";
 
 /* =============================================
    NAVBAR COMPONENT
@@ -20,13 +23,17 @@ export default function Navbar() {
           href="/"
           className="flex items-center text-2xl text-accent font-light tracking-widest"
         >
-          <Play size={18} className="text-accent" />
-          Movie<span className="text-text-primary">App</span>
+          <Play size={36} className="text-accent mr-2" />
+          <span className="hidden md:inline">Movie</span>
+          <span className="hidden md:inline text-text-primary">App</span>
         </Link>
 
         {/* Desktop nav — hidden on mobile and tablet */}
         <div className="hidden lg:flex items-center gap-8">
           <NavDesktop />
+
+          <SearchBar movies={movies as Movie[]} />
+
           <Link
             href="/login"
             className="h-10 flex items-center gap-2 text-sm font-medium px-4 rounded-xl bg-accent text-bg-primary hover:scale-105 transition-all duration-300"
@@ -38,6 +45,8 @@ export default function Navbar() {
 
         {/* Mobile and tablet — login + menu button */}
         <div className="flex lg:hidden items-center gap-8">
+          <SearchBar movies={movies as Movie[]} />
+
           <Link
             href="/login"
             className="h-10 flex items-center gap-2 text-sm font-medium px-4 rounded-xl bg-accent text-bg-primary hover:scale-105 transition-all duration-300"

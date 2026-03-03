@@ -202,3 +202,60 @@ export const filterCard: Variants = {
     },
   },
 };
+
+/* =============================================
+   SEARCHBAR — INPUT EXPANSION
+   ============================================= */
+export const searchInput: Variants = {
+  hidden: {
+    width: 0,
+    opacity: 0,
+    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
+  },
+  visible: {
+    width: "240px",
+    opacity: 1,
+    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
+  },
+};
+
+/* =============================================
+   SEARCHBAR — SEARCH ICON BUTTON
+   ============================================= */
+export const searchIcon: Variants = {
+  hidden: { opacity: 0, transition: { duration: 0.2 } },
+  visible: { opacity: 1, transition: { duration: 0.2 } },
+};
+
+/* =============================================
+   SEARCHBAR — DROPDOWN
+   ============================================= */
+export const searchDropdown: Variants = {
+  hidden: {
+    opacity: 0,
+    y: -8,
+    transition: { duration: 0.2, ease: [0.76, 0, 0.24, 1] },
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.2, ease: [0.76, 0, 0.24, 1] },
+  },
+};
+
+/* =============================================
+   SEARCHBAR — SEARCH PANEL
+   Drops below navbar
+   ============================================= */
+export const searchPanel: Variants = {
+  hidden: {
+    opacity: 0,
+    y: -10,
+    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
+  },
+};
