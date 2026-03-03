@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
-import Link from "next/link";
 import { X, Heart, Bookmark, ChevronRight, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import { Movie } from "@/types/movie";
 import { formatRating } from "@/lib/utils";
 import { modalWrapper, modalBackdrop, modalPanel } from "@/lib/animations";
-import { createPortal } from "react-dom";
 
 /* =============================================
    PROPS INTERFACE
@@ -21,10 +21,18 @@ interface MovieModalProps {
 /* =============================================
    MOVIE MODAL COMPONENT
    Reusable modal with trailer, movie info,
-   and action buttons. Used in hero banner
-   and movie gallery cards.
+   and action buttons. Used in hero banner,
+   gallery cards and search results.
    ============================================= */
 export default function MovieModal({ movie, onClose }: MovieModalProps) {
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  /* ── Mount check — portal requires client ── */
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   /* ── Close on Escape key ── */
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -42,11 +50,11 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
     };
   }, [movie]);
 
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  /* ── Handlers ── */
+  const handleGoToMovie = useCallback(() => {
+    onClose();
+    router.push(`/movie/${movie!.id}`);
+  }, [movie, onClose, router]);
 
   if (!mounted) return null;
 
@@ -120,7 +128,7 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
                 {movie.title}
               </h2>
 
-              {/* Meta */}
+              {/* Meta — year, rating, director */}
               <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <span className="text-text-secondary text-xs">
                   {movie.year}
@@ -155,16 +163,21 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
 
               {/* Actions */}
               <div className="flex items-center gap-3">
-                <Link
-                  href={`/movie/${movie.id}`}
-                  className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl bg-accent text-bg-primary text-sm font-medium hover:scale-105 transition-transform duration-300"
+                {/* Go to movie page */}
+                <button
+                  onClick={handleGoToMovie}
+                  className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl bg-accent text-bg-primary text-sm font-medium hover:scale-105 transition-transform duration-300 cursor-pointer"
                 >
                   Scheda completa
                   <ChevronRight size={15} />
-                </Link>
+                </button>
+
+                {/* Add to favorites */}
                 <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-border-subtle text-text-secondary hover:border-heart hover:text-heart transition-all duration-300">
                   <Heart size={16} />
                 </button>
+
+                {/* Add to watchlist */}
                 <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-border-subtle text-text-secondary hover:border-accent hover:text-accent transition-all duration-300">
                   <Bookmark size={16} />
                 </button>
