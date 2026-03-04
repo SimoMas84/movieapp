@@ -1,0 +1,212 @@
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import { Star, Heart, Bookmark } from "lucide-react";
+import { formatRating } from "@/lib/utils";
+import CastGallery from "@/components/ui/CastGallery";
+import TrailerPlayer from "@/components/ui/TrailerPlayer";
+import {
+  getSeriesDetail,
+  getSeriesCredits,
+  getSeriesVideos,
+  getWatchProviders,
+  getRelatedSeries,
+  tmdbImage,
+} from "@/lib/tmdb";
+
+/* =============================================
+   PROPS
+   ============================================= */
+interface SeriePageProps {
+  params: Promise<{ id: string }>;
+}
+
+/* =============================================
+   SERIE DETAIL PAGE — SERVER COMPONENT
+   Fetches all series data in parallel
+   ============================================= */
+export default async function SeriePage({ params }: SeriePageProps) {
+  const { id } = await params;
+  const serieId = Number(id);
+
+  /* ── Fetch all data in parallel ── */
+  const [serie, credits, videos, providers, related] = await Promise.all([
+    getSeriesDetail(serieId),
+    getSeriesCredits(serieId),
+    getSeriesVideos(serieId),
+    getWatchProviders(serieId, "tv"),
+    getRelatedSeries(serieId),
+  ]).catch(() => notFound());
+
+  /* ── Data helpers ── */
+  const trailer = videos[0] ?? null;
+  const director = credits.crew.find(
+    (c) => c.job === "Director" || c.job === "Executive Producer",
+  );
+  const cast = credits.cast.slice(0, 12);
+  const backdropUrl = tmdbImage.backdropFull(serie.backdrop_path);
+
+  return (
+    <>
+      {/* ── Hero — fullscreen backdrop ── */}
+      <section className="relative w-full h-svh">
+        {/* Backdrop image */}
+        {backdropUrl && (
+          <Image
+            src={backdropUrl}
+            alt={serie.name ?? ""}
+            fill
+            className="object-cover"
+            priority
+          />
+        )}
+
+        {/* Gradients overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-bg-primary/80 via-transparent to-transparent" />
+
+        {/* ── Hero content ── */}
+        <div className="absolute bottom-0 left-0 right-0 px-6 md:px-10 pb-16">
+          <div className="max-w-screen-2xl mx-auto flex items-end gap-12">
+            {/* ── Left — poster (desktop only) ── */}
+            <div className="hidden lg:block relative shrink-0 w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-border-subtle">
+              {serie.poster_path && (
+                <Image
+                  src={tmdbImage.posterLarge(serie.poster_path) ?? ""}
+                  alt={serie.name ?? ""}
+                  fill
+                  className="object-cover"
+                />
+              )}
+            </div>
+
+            {/* ── Right — info ── */}
+            <div className="flex-1 max-w-3xl">
+              {/* Title */}
+              <h1 className="text-5xl md:text-7xl font-light text-text-primary mb-5 leading-tight">
+                {serie.name}
+              </h1>
+
+              {/* Meta — year, rating ── */}
+              <div className="flex items-center gap-3 flex-wrap mb-3">
+                <span className="text-text-secondary md:text-base">
+                  {new Date(serie.first_air_date ?? "").getFullYear()}
+                </span>
+                <span className="text-text-muted">·</span>
+                <div className="flex items-center gap-1">
+                  <Star size={15} className="text-accent" />
+                  <span className="text-accent md:text-base font-medium">
+                    {formatRating(serie.vote_average)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Creator ── */}
+              {director && (
+                <p className="text-text-secondary md:text-base mb-5">
+                  Creata da{" "}
+                  <span className="text-text-primary">{director.name}</span>
+                </p>
+              )}
+
+              {/* Genre chips + type badge */}
+              <div className="flex gap-2 flex-wrap mb-5">
+                <span className="text-xs px-2 py-1 rounded-sm border border-accent/30 text-accent bg-accent/10">
+                  Serie TV
+                </span>
+                {serie.genres?.map((g) => (
+                  <span
+                    key={g.id}
+                    className="text-xs px-2 py-1 rounded-sm border border-border-subtle text-text-secondary"
+                  >
+                    {g.name}
+                  </span>
+                ))}
+              </div>
+
+              {/* Plot */}
+              <p className="text-text-secondary md:text-base leading-relaxed line-clamp-4 mb-6">
+                {serie.overview}
+              </p>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-3">
+                <button className="w-11 h-11 flex items-center justify-center rounded-xl border border-border-subtle text-text-secondary hover:border-heart hover:text-heart transition-all duration-300">
+                  <Heart size={18} />
+                </button>
+                <button className="w-11 h-11 flex items-center justify-center rounded-xl border border-border-subtle text-text-secondary hover:border-accent hover:text-accent transition-all duration-300">
+                  <Bookmark size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Content sections ── */}
+      <div className="px-6 md:px-10 py-16 max-w-screen-2xl mx-auto space-y-16">
+        {/* ── Trailer ── */}
+        {trailer && (
+          <TrailerPlayer trailerKey={trailer.key} title={serie.name ?? ""} />
+        )}
+
+        {/* ── Cast ── */}
+        <section>
+          <h2 className="text-xl font-light text-text-primary mb-6">Cast</h2>
+          <CastGallery cast={cast} />
+        </section>
+
+        {/* ── Watch providers ── */}
+        {providers.length > 0 && (
+          <section>
+            <h2 className="text-xl font-light text-text-primary mb-6">
+              Disponibile su
+            </h2>
+            <div className="flex gap-4 flex-wrap">
+              {providers.map((p) => (
+                <div
+                  key={p.provider_id}
+                  className="relative w-14 h-14 rounded-xl overflow-hidden border border-border-subtle"
+                >
+                  <Image
+                    src={tmdbImage.profile(p.logo_path) ?? ""}
+                    alt={p.provider_name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Related series ── */}
+        {related.length > 0 && (
+          <section>
+            <h2 className="text-xl font-light text-text-primary mb-6">
+              Serie correlate
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {related.slice(0, 6).map((s) => (
+                <a href={`/serie/${s.id}`} key={s.id} className="group">
+                  <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-surface-2 border border-transparent group-hover:border-accent transition-all duration-300">
+                    {s.poster_path && (
+                      <Image
+                        src={tmdbImage.poster(s.poster_path) ?? ""}
+                        alt={s.name ?? ""}
+                        fill
+                        className="object-cover group-hover:brightness-110 transition-all duration-300"
+                      />
+                    )}
+                  </div>
+                  <p className="text-text-secondary text-xs mt-2 truncate group-hover:text-text-primary transition-colors duration-300">
+                    {s.name}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </>
+  );
+}

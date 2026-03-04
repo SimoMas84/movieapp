@@ -52,8 +52,11 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
 
   /* ── Handlers ── */
   const handleGoToMovie = useCallback(() => {
+    if (!movie) return;
     onClose();
-    router.push(`/movie/${movie!.id}`);
+    const path =
+      movie.type === "serie" ? `/serie/${movie.id}` : `/movie/${movie.id}`;
+    router.push(path);
   }, [movie, onClose, router]);
 
   if (!mounted) return null;
