@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
+import SplashScreen from "@/components/layout/SplashScreen";
 
 /* =============================================
    FONT CONFIGURATION
@@ -31,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="it" className={rubik.className}>
       <body className="antialiased">
+        <SplashScreen />
         <Navbar />
         <main className="relative z-10">{children}</main>
       </body>
