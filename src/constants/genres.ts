@@ -12,7 +12,7 @@ export const genres: Genre[] = [
   { id: 1, name: "Azione", slug: "action" },
   { id: 2, name: "Avventura", slug: "adventure" },
   { id: 3, name: "Fantascienza", slug: "sci-fi" },
-  { id: 4, name: "Dramma", slug: "drama" },
+  { id: 4, name: "Drammatico", slug: "drama" },
   { id: 5, name: "Horror", slug: "horror" },
   { id: 6, name: "Commedia", slug: "comedy" },
   { id: 7, name: "Thriller", slug: "thriller" },
