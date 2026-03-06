@@ -3,22 +3,35 @@
 import { useState, useCallback } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
-import { Star, Heart, Bookmark } from "lucide-react";
+import { Calendar, Heart, Bookmark } from "lucide-react";
 import { Movie } from "@/types/movie";
-import { formatRating } from "@/lib/utils";
 import { cardEntry } from "@/lib/animations";
 
 /* =============================================
    PROPS INTERFACE
    ============================================= */
-interface MovieCardProps {
+interface UpcomingCardProps {
   movie: Movie;
   index: number;
   onSelect: (movie: Movie) => void;
 }
 
 /* =============================================
-   CONSTANTS
+   DATE FORMATTER
+   Formats date to Italian extended format
+   e.g. "19 marzo 2026"
+   ============================================= */
+function formatDateIT(dateStr: string): string {
+  if (!dateStr) return "Data da definire";
+  return new Date(dateStr).toLocaleDateString("it-IT", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/* =============================================
+   TYPE STYLES
    ============================================= */
 const TYPE_STYLES = {
   film: "text-accent",
@@ -31,12 +44,16 @@ const TYPE_LABELS = {
 } as const;
 
 /* =============================================
-   MOVIE CARD COMPONENT
-   Vertical poster card with rating, actions,
-   title, type, genre and year.
+   UPCOMING CARD COMPONENT
+   Vertical poster card for unreleased movies.
+   Shows release date instead of rating.
    Opens MovieModal on click.
    ============================================= */
-export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
+export default function UpcomingCard({
+  movie,
+  index,
+  onSelect,
+}: UpcomingCardProps) {
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [isWatchlist, setIsWatchlist] = useState<boolean>(false);
 
@@ -87,17 +104,8 @@ export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
           </div>
         )}
 
-        {/* ── Top bar — rating + actions ── */}
-        <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-2">
-          {/* Rating */}
-          <div className="flex items-center gap-1 bg-bg-primary/70 backdrop-blur-sm rounded-md px-1.5 py-1">
-            <Star size={10} className="text-accent" />
-            <span className="text-accent text-xs font-medium">
-              {formatRating(movie.rating)}
-            </span>
-          </div>
-
-          {/* Action icons */}
+        {/* ── Top bar — actions only ── */}
+        <div className="absolute top-0 right-0 p-2">
           <div className="flex flex-col gap-1.5">
             <button
               onClick={handleFavorite}
@@ -128,18 +136,28 @@ export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
           </div>
         </div>
 
-        {/* ── Bottom overlay ── */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-bg-primary to-transparent p-2 pt-8">
-          {/* Type · Genre · Year — white text */}
-          <p className="text-xs truncate">
+        {/* ── Bottom overlay — title + date ── */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-bg-primary/90 to-transparent p-2 pt-6">
+          {/* Title */}
+          <h3 className="text-text-primary text-xs font-medium leading-tight line-clamp-2 mb-1.5">
+            {movie.title}
+          </h3>
+
+          {/* Type · Genre */}
+          <p className="text-xs truncate mb-1.5">
             <span className={TYPE_STYLES[movie.type]}>
               {TYPE_LABELS[movie.type]}
             </span>
-            <span className="text-text-primary">
-              {" "}
-              · {movie.genre[0]} · {movie.year}
-            </span>
+            <span className="text-text-muted"> · {movie.genre[0]}</span>
           </p>
+
+          {/* Release date */}
+          <div className="flex items-center gap-1">
+            <Calendar size={10} className="text-accent shrink-0" />
+            <span className="text-accent text-xs font-medium">
+              {formatDateIT(movie.releaseDate ?? "")}
+            </span>
+          </div>
         </div>
       </div>
     </motion.div>

@@ -7,7 +7,7 @@ import { Home, Heart, Bookmark, Video, Users, Film, Tv } from "lucide-react";
 const navLinks = [
   { title: "Home", href: "/", icon: Home },
   { title: "Film", href: "/films", icon: Film },
-  { title: "Serie TV", href: "/series", icon: Tv },
+  { title: "Serie", href: "/series", icon: Tv },
   { title: "Registi", href: "/directors", icon: Video },
   { title: "Attori", href: "/actors", icon: Users },
   { title: "Watchlist", href: "/watchlist", icon: Bookmark },

@@ -75,5 +75,6 @@ export function toMovie(m: TMDBMovie, genres: Record<number, string>): Movie {
     awards: [],
     upcoming: false,
     type: isTV ? "serie" : "film",
+    releaseDate: m.release_date ?? m.first_air_date ?? undefined,
   };
 }

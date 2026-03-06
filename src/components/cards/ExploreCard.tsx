@@ -11,7 +11,7 @@ import { cardEntry } from "@/lib/animations";
 /* =============================================
    PROPS INTERFACE
    ============================================= */
-interface MovieCardProps {
+interface ExploreCardProps {
   movie: Movie;
   index: number;
   onSelect: (movie: Movie) => void;
@@ -31,21 +31,22 @@ const TYPE_LABELS = {
 } as const;
 
 /* =============================================
-   MOVIE CARD COMPONENT
-   Vertical poster card with rating, actions,
-   title, type, genre and year.
-   Opens MovieModal on click.
+   EXPLORE CARD COMPONENT
+   Same style as MovieCard but w-full
+   to adapt to GenreExplorer grid layout.
    ============================================= */
-export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
+export default function ExploreCard({
+  movie,
+  index,
+  onSelect,
+}: ExploreCardProps) {
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [isWatchlist, setIsWatchlist] = useState<boolean>(false);
 
-  /* ── Image URL ── */
   const posterUrl = movie.poster
     ? `https://image.tmdb.org/t/p/w500${movie.poster}`
     : null;
 
-  /* ── Handlers ── */
   const handleFavorite = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsFavorite((prev) => !prev);
@@ -62,14 +63,13 @@ export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
 
   return (
     <motion.div
-      className="relative flex-shrink-0 w-46 md:w-54 cursor-pointer"
+      className="w-full cursor-pointer"
       variants={cardEntry}
       initial="hidden"
       animate="visible"
       custom={index}
       onClick={handleSelect}
     >
-      {/* ── Poster ── */}
       <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-surface-2 border border-transparent hover:border-accent hover:brightness-110 transition-all duration-300">
         {posterUrl ? (
           <Image
@@ -77,7 +77,7 @@ export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
             alt={movie.title}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 144px, 176px"
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-surface-2">
@@ -89,7 +89,6 @@ export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
 
         {/* ── Top bar — rating + actions ── */}
         <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-2">
-          {/* Rating */}
           <div className="flex items-center gap-1 bg-bg-primary/70 backdrop-blur-sm rounded-md px-1.5 py-1">
             <Star size={10} className="text-accent" />
             <span className="text-accent text-xs font-medium">
@@ -97,7 +96,6 @@ export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
             </span>
           </div>
 
-          {/* Action icons */}
           <div className="flex flex-col gap-1.5">
             <button
               onClick={handleFavorite}
@@ -130,7 +128,6 @@ export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
 
         {/* ── Bottom overlay ── */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-bg-primary to-transparent p-2 pt-8">
-          {/* Type · Genre · Year — white text */}
           <p className="text-xs truncate">
             <span className={TYPE_STYLES[movie.type]}>
               {TYPE_LABELS[movie.type]}

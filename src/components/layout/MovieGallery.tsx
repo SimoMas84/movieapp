@@ -4,10 +4,10 @@ import { useState, useCallback } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, FreeMode } from "swiper/modules";
 import MovieCard from "@/components/cards/MovieCard";
+import UpcomingCard from "@/components/cards/UpcomingCard";
 import MovieModal from "@/components/ui/MovieModal";
 import { Movie } from "@/types/movie";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getMovieVideos, getSeriesVideos } from "@/lib/tmdb";
 
 /* =============================================
    PROPS INTERFACE
@@ -15,17 +15,22 @@ import { getMovieVideos, getSeriesVideos } from "@/lib/tmdb";
 interface MovieGalleryProps {
   title: string;
   movies: Movie[];
+  variant?: "default" | "upcoming";
 }
 
 /* =============================================
    MOVIE GALLERY COMPONENT
    Horizontal scrolling gallery with free mode,
-   desktop navigation arrows and MovieModal
+   desktop navigation arrows and MovieModal.
+   Supports "upcoming" variant for unreleased movies.
    ============================================= */
-export default function MovieGallery({ title, movies }: MovieGalleryProps) {
+export default function MovieGallery({
+  title,
+  movies,
+  variant = "default",
+}: MovieGalleryProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  /* ── Handlers ── */
   /* ── Fetch trailer and open modal ── */
   const handleSelect = useCallback(async (movie: Movie) => {
     try {
@@ -53,10 +58,16 @@ export default function MovieGallery({ title, movies }: MovieGalleryProps) {
 
         {/* ── Gallery ── */}
         <div className="relative">
-          {/* Swiper */}
           <Swiper
             modules={[Navigation, FreeMode]}
-            freeMode={true}
+            cssMode={true}
+            freeMode={{
+              enabled: true,
+              momentum: true,
+              momentumRatio: 1,
+              momentumVelocityRatio: 1,
+              momentumBounce: false,
+            }}
             navigation={{
               nextEl: `.next-${title.replace(/\s/g, "")}`,
               prevEl: `.prev-${title.replace(/\s/g, "")}`,
@@ -69,7 +80,15 @@ export default function MovieGallery({ title, movies }: MovieGalleryProps) {
           >
             {movies.map((movie, i) => (
               <SwiperSlide key={movie.id} className="!w-auto">
-                <MovieCard movie={movie} index={i} onSelect={handleSelect} />
+                {variant === "upcoming" ? (
+                  <UpcomingCard
+                    movie={movie}
+                    index={i}
+                    onSelect={handleSelect}
+                  />
+                ) : (
+                  <MovieCard movie={movie} index={i} onSelect={handleSelect} />
+                )}
               </SwiperSlide>
             ))}
           </Swiper>

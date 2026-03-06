@@ -14,4 +14,5 @@ export interface Movie {
   awards: string[];
   upcoming: boolean;
   type: "film" | "serie";
+  releaseDate?: string;
 }
