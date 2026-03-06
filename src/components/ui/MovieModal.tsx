@@ -146,7 +146,7 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
                 <span
                   className={`text-xs font-medium ${movie.type === "serie" ? "text-blue-400" : "text-accent"}`}
                 >
-                  {movie.type === "serie" ? "Serie TV" : "Film"}
+                  {movie.type === "serie" ? "Serie" : "Film"}
                 </span>
 
                 {/* Durata film */}
