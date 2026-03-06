@@ -164,16 +164,37 @@ export default function GenreExplorer({
 
   /* ── Handle card click ── */
   const handleSelect = useCallback(async (movie: Movie) => {
+    const type = movie.type === "serie" ? "tv" : "movie";
     try {
-      const res = await fetch(
-        `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
-      );
-      const { trailerKey } = await res.json();
-      setSelectedMovie({ ...movie, trailerKey });
+      const [trailerRes, detailRes] = await Promise.all([
+        fetch(`/api/trailer?id=${movie.id}&type=${type}`),
+        fetch(`/api/detail?id=${movie.id}&type=${type}`),
+      ]);
+      const { trailerKey } = await trailerRes.json();
+      const { runtime, numberOfSeasons, numberOfEpisodes } =
+        await detailRes.json();
+      setSelectedMovie({
+        ...movie,
+        trailerKey,
+        runtime,
+        numberOfSeasons,
+        numberOfEpisodes,
+      });
     } catch {
       setSelectedMovie(movie);
     }
   }, []);
+  // const handleSelect = useCallback(async (movie: Movie) => {
+  //   try {
+  //     const res = await fetch(
+  //       `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
+  //     );
+  //     const { trailerKey } = await res.json();
+  //     setSelectedMovie({ ...movie, trailerKey });
+  //   } catch {
+  //     setSelectedMovie(movie);
+  //   }
+  // }, []);
 
   const handleClose = useCallback(() => {
     setSelectedMovie(null);

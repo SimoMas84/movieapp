@@ -10,6 +10,15 @@ import { Movie } from "@/types/movie";
 import { formatRating } from "@/lib/utils";
 import { modalWrapper, modalBackdrop, modalPanel } from "@/lib/animations";
 
+/* ── Format runtime minutes → "1h 45m" ── */
+function formatRuntime(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
 /* =============================================
    PROPS INTERFACE
    ============================================= */
@@ -131,19 +140,47 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
                 {movie.title}
               </h2>
 
-              {/* Meta — year, rating, director */}
+              {/* Meta — year, type, runtime/seasons, rating */}
               <div className="flex items-center gap-2 mb-3 flex-wrap">
+                {/* Badge tipo */}
+                <span
+                  className={`text-xs font-medium ${movie.type === "serie" ? "text-blue-400" : "text-accent"}`}
+                >
+                  {movie.type === "serie" ? "Serie TV" : "Film"}
+                </span>
+
+                {/* Durata film */}
+                {movie.type === "film" && movie.runtime && (
+                  <>
+                    <span className="text-text-muted text-xs">•</span>
+                    <span className="text-text-secondary text-xs">
+                      {formatRuntime(movie.runtime)}
+                    </span>
+                  </>
+                )}
+
+                {/* Stagioni serie */}
+                {movie.type === "serie" && movie.numberOfSeasons && (
+                  <>
+                    <span className="text-text-muted text-xs">•</span>
+                    <span className="text-text-secondary text-xs">
+                      {movie.numberOfSeasons}{" "}
+                      {movie.numberOfSeasons === 1 ? "stagione" : "stagioni"}
+                    </span>
+                  </>
+                )}
+
+                {/* Year */}
+                <span className="text-text-muted text-xs">•</span>
                 <span className="text-text-secondary text-xs">
                   {movie.year}
                 </span>
+
+                {/* Rating */}
                 <span className="text-text-muted text-xs">•</span>
                 <span className="flex items-center gap-1 text-accent text-xs">
                   <Star size={11} />
                   {formatRating(movie.rating)}
-                </span>
-                <span className="text-text-muted text-xs">•</span>
-                <span className="text-text-secondary text-xs">
-                  {movie.director}
                 </span>
               </div>
 

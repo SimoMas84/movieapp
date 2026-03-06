@@ -105,6 +105,8 @@ export interface TMDBMovie {
   genre_ids?: number[];
   genres?: { id: number; name: string }[];
   runtime?: number;
+  number_of_seasons?: number;
+  number_of_episodes?: number;
   budget?: number;
   revenue?: number;
   status?: string;

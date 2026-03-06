@@ -58,14 +58,15 @@ import { TMDBMovie } from "@/lib/tmdb";
 import { Movie } from "@/types/movie";
 
 export function toMovie(m: TMDBMovie, genres: Record<number, string>): Movie {
-  const isTV = !m.title;
+  const isTV = m.media_type === "tv" || (!m.title && !!m.name) || !!m.first_air_date;
   return {
     id: m.id,
     title: m.title ?? m.name ?? "",
     originalTitle: m.original_title ?? m.original_name ?? "",
     year: new Date(m.release_date ?? m.first_air_date ?? "").getFullYear(),
     director: "",
-    genre: m.genre_ids?.map((id) => genres[id]).filter(Boolean) ?? [],
+    genre: m.genre_ids?.map((id) => genres[id]).filter(Boolean) ??
+           m.genres?.map((g) => g.name) ?? [],
     rating: Math.round(m.vote_average * 10) / 10,
     poster: m.poster_path,
     backdrop: m.backdrop_path,
@@ -76,5 +77,30 @@ export function toMovie(m: TMDBMovie, genres: Record<number, string>): Movie {
     upcoming: false,
     type: isTV ? "serie" : "film",
     releaseDate: m.release_date ?? m.first_air_date ?? undefined,
+    runtime: m.runtime,
+    numberOfSeasons: m.number_of_seasons,
+    numberOfEpisodes: m.number_of_episodes,
   };
 }
+
+// export function toMovie(m: TMDBMovie, genres: Record<number, string>): Movie {
+//   const isTV = !m.title;
+//   return {
+//     id: m.id,
+//     title: m.title ?? m.name ?? "",
+//     originalTitle: m.original_title ?? m.original_name ?? "",
+//     year: new Date(m.release_date ?? m.first_air_date ?? "").getFullYear(),
+//     director: "",
+//     genre: m.genre_ids?.map((id) => genres[id]).filter(Boolean) ?? [],
+//     rating: Math.round(m.vote_average * 10) / 10,
+//     poster: m.poster_path,
+//     backdrop: m.backdrop_path,
+//     trailerKey: null,
+//     plot: m.overview,
+//     cast: [],
+//     awards: [],
+//     upcoming: false,
+//     type: isTV ? "serie" : "film",
+//     releaseDate: m.release_date ?? m.first_air_date ?? undefined,
+//   };
+// }

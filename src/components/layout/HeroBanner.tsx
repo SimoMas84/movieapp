@@ -28,22 +28,43 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  /* ── Handlers ── */
-  const handleSelect = useCallback(
-    async (movie: Movie) => {
-      if (isDragging) return;
-      try {
-        const res = await fetch(
-          `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
-        );
-        const { trailerKey } = await res.json();
-        setSelectedMovie({ ...movie, trailerKey });
-      } catch {
-        setSelectedMovie(movie);
-      }
-    },
-    [isDragging],
-  );
+  const handleSelect = useCallback(async (movie: Movie) => {
+    const type = movie.type === "serie" ? "tv" : "movie";
+    try {
+      const [trailerRes, detailRes] = await Promise.all([
+        fetch(`/api/trailer?id=${movie.id}&type=${type}`),
+        fetch(`/api/detail?id=${movie.id}&type=${type}`),
+      ]);
+      const { trailerKey } = await trailerRes.json();
+      const { runtime, numberOfSeasons, numberOfEpisodes } =
+        await detailRes.json();
+      setSelectedMovie({
+        ...movie,
+        trailerKey,
+        runtime,
+        numberOfSeasons,
+        numberOfEpisodes,
+      });
+    } catch {
+      setSelectedMovie(movie);
+    }
+  }, []);
+  // /* ── Handlers ── */
+  // const handleSelect = useCallback(
+  //   async (movie: Movie) => {
+  //     if (isDragging) return;
+  //     try {
+  //       const res = await fetch(
+  //         `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
+  //       );
+  //       const { trailerKey } = await res.json();
+  //       setSelectedMovie({ ...movie, trailerKey });
+  //     } catch {
+  //       setSelectedMovie(movie);
+  //     }
+  //   },
+  //   [isDragging],
+  // );
 
   const handleSliderMove = useCallback(() => {
     setIsDragging(true);
