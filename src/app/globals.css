@@ -87,7 +87,7 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   background:
     radial-gradient(ellipse 80% 50% at 10% 20%, rgba(10, 25, 60, 0.6) 0%, transparent 60%),
     radial-gradient(ellipse 60% 40% at 80% 80%, rgba(5, 15, 40, 0.5) 0%, transparent 60%),

@@ -3,6 +3,7 @@ import { Rubik } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import SplashScreen from "@/components/layout/SplashScreen";
+import Footer from "@/components/layout/Footer";
 
 /* =============================================
    FONT CONFIGURATION
@@ -79,6 +80,7 @@ export default function RootLayout({
         <SplashScreen />
         <Navbar />
         <main className="relative z-10">{children}</main>
+        <Footer />
       </body>
     </html>
   );

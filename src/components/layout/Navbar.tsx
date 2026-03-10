@@ -19,9 +19,9 @@ export default function Navbar() {
           href="/"
           className="flex items-center text-2xl text-accent font-light tracking-widest"
         >
-          <Play size={36} className="text-accent mr-2" />
           <span className="hidden md:inline">Movie</span>
           <span className="hidden md:inline text-text-primary">App</span>
+          <Play size={36} className="text-accent mr-2" />
         </Link>
 
         {/* Desktop nav — hidden on mobile and tablet */}
