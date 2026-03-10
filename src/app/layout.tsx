@@ -17,8 +17,52 @@ const rubik = Rubik({
    APP METADATA
    ============================================= */
 export const metadata: Metadata = {
-  title: "MovieApp - Database Cinema",
-  description: "Database di cinema, film e serie TV",
+  metadataBase: new URL("https://www.movieapp.it"),
+  title: {
+    default: "MovieApp — Scopri Film e Serie TV",
+    template: "%s | MovieApp",
+  },
+  description:
+    "Scopri film e serie TV, leggi trame, guarda trailer, esplora cast e trovale in streaming. Il tuo database cinematografico.",
+  keywords: [
+    "film",
+    "serie tv",
+    "cinema",
+    "trailer",
+    "cast",
+    "streaming",
+    "database film",
+  ],
+  authors: [{ name: "MovieApp" }],
+  creator: "MovieApp",
+  openGraph: {
+    type: "website",
+    locale: "it_IT",
+    url: "https://www.movieapp.it",
+    siteName: "MovieApp",
+    title: "MovieApp — Scopri Film e Serie TV",
+    description:
+      "Scopri film e serie TV, leggi trame, guarda trailer, esplora cast e trovale in streaming.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "MovieApp — Scopri Film e Serie TV",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MovieApp — Scopri Film e Serie TV",
+    description:
+      "Scopri film e serie TV, leggi trame, guarda trailer, esplora cast e trovale in streaming.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 /* =============================================

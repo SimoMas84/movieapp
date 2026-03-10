@@ -13,11 +13,11 @@ import { menuContainer, navLinkVariants } from "@/lib/animations";
 const navLinks = [
   { title: "Home", href: "/", icon: Home },
   { title: "Film", href: "/films", icon: Film },
-  { title: "Serie TV", href: "/series", icon: Tv },
-  { title: "Preferiti", href: "/favorites", icon: Heart },
-  { title: "Watchlist", href: "/watchlist", icon: Bookmark },
+  { title: "Serie", href: "/series", icon: Tv },
   { title: "Registi", href: "/directors", icon: Video },
   { title: "Attori", href: "/actors", icon: Users },
+  { title: "Watchlist", href: "/watchlist", icon: Bookmark },
+  { title: "Preferiti", href: "/favorites", icon: Heart },
 ];
 
 /* =============================================
