@@ -36,12 +36,12 @@ export default async function Home() {
   return (
     <>
       <HeroBanner movies={heroMovies} />
+      <MovieGallery title="Ultime uscite" movies={latestMovies} />
       <MovieGallery
         title="Prossime uscite"
         movies={upcomingMovies}
         variant="upcoming"
       />
-      <MovieGallery title="Ultime uscite" movies={latestMovies} />
       <MovieGallery title="Film popolari" movies={topRatedFilms} />
       <MovieGallery title="Serie popolari" movies={topRatedSeries} />
     </>

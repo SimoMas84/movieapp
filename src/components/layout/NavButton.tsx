@@ -17,7 +17,8 @@ interface NavButtonProps {
 
 /* =============================================
    NAV BUTTON COMPONENT
-   Animated hamburger → X icon
+   Animated hamburger → X icon.
+   Always rendered above backdrop and menu.
    ============================================= */
 export default function NavButton({ isOpen, onClick }: NavButtonProps) {
   return (
@@ -26,19 +27,19 @@ export default function NavButton({ isOpen, onClick }: NavButtonProps) {
       aria-label={isOpen ? "Chiudi menu" : "Apri menu"}
       className="relative h-10 w-10 flex flex-col justify-center items-center cursor-pointer bg-transparent border-none"
     >
-      {/* Top line */}
+      {/* ── Top line ── */}
       <motion.span
         className="absolute block w-10 h-[0.5px] bg-accent rounded-sm"
         animate={hamburgerTop(isOpen)}
       />
 
-      {/* Middle line */}
+      {/* ── Middle line ── */}
       <motion.span
         className="absolute block w-10 h-[0.5px] bg-accent rounded-sm"
         animate={hamburgerMiddle(isOpen)}
       />
 
-      {/* Bottom line */}
+      {/* ── Bottom line ── */}
       <motion.span
         className="absolute block w-10 h-[0.5px] bg-accent rounded-sm"
         animate={hamburgerBottom(isOpen)}

@@ -42,6 +42,7 @@ export default function CastGallery({ cast }: CastGalleryProps) {
         {cast.map((actor, i) => (
           <SwiperSlide key={actor.id} className="!w-auto">
             <ActorCard
+              id={actor.id}
               name={actor.name}
               character={actor.character}
               profilePath={actor.profile_path}

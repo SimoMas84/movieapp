@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import SplashScreen from "@/components/layout/SplashScreen";
 import Footer from "@/components/layout/Footer";
+import CookieBanner from "@/components/layout/CookieBanner";
 
 /* =============================================
    FONT CONFIGURATION
@@ -81,6 +82,7 @@ export default function RootLayout({
         <Navbar />
         <main className="relative z-10">{children}</main>
         <Footer />
+        <CookieBanner />
       </body>
     </html>
   );

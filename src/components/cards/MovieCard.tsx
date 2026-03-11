@@ -136,8 +136,8 @@ export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
               {TYPE_LABELS[movie.type]}
             </span>
             <span className="text-text-primary">
-              {" "}
-              · {movie.genre[0]} · {movie.year}
+              {movie.genre[0] ? ` · ${movie.genre[0]}` : ""}
+              {movie.year ? ` · ${movie.year}` : ""}
             </span>
           </p>
         </div>

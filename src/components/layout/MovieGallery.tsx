@@ -13,7 +13,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
    PROPS INTERFACE
    ============================================= */
 interface MovieGalleryProps {
-  title: string;
+  title?: string;
   movies: Movie[];
   variant?: "default" | "upcoming";
 }
@@ -30,6 +30,9 @@ export default function MovieGallery({
   variant = "default",
 }: MovieGalleryProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+
+  /* ── Unique gallery ID for navigation arrows ── */
+  const galleryId = (title ?? "gallery").replace(/\s/g, "");
 
   /* ── Fetch trailer and open modal ── */
   const handleSelect = useCallback(async (movie: Movie) => {
@@ -54,18 +57,6 @@ export default function MovieGallery({
     }
   }, []);
 
-  // const handleSelect = useCallback(async (movie: Movie) => {
-  //   try {
-  //     const res = await fetch(
-  //       `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
-  //     );
-  //     const { trailerKey } = await res.json();
-  //     setSelectedMovie({ ...movie, trailerKey });
-  //   } catch {
-  //     setSelectedMovie(movie);
-  //   }
-  // }, []);
-
   const handleClose = useCallback(() => {
     setSelectedMovie(null);
   }, []);
@@ -74,9 +65,11 @@ export default function MovieGallery({
     <>
       <section className="w-full py-8">
         {/* ── Section title ── */}
-        <h2 className="text-xl md:text-2xl font-light text-text-primary px-6 md:px-10 mb-4">
-          {title}
-        </h2>
+        {title && (
+          <h2 className="text-xl md:text-2xl font-light text-text-primary px-6 md:px-10 mb-4">
+            {title}
+          </h2>
+        )}
 
         {/* ── Gallery ── */}
         <div className="relative">
@@ -91,8 +84,8 @@ export default function MovieGallery({
               momentumBounce: false,
             }}
             navigation={{
-              nextEl: `.next-${title.replace(/\s/g, "")}`,
-              prevEl: `.prev-${title.replace(/\s/g, "")}`,
+              nextEl: `.next-${galleryId}`,
+              prevEl: `.prev-${galleryId}`,
             }}
             slidesPerView="auto"
             spaceBetween={12}
@@ -118,13 +111,13 @@ export default function MovieGallery({
           {/* ── Desktop arrows ── */}
           <button
             aria-label="Scorri a sinistra"
-            className={`prev-${title.replace(/\s/g, "")} hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-md bg-bg-primary/80 backdrop-blur-sm border border-border-subtle text-text-secondary hover:border-accent hover:text-accent transition-all duration-300`}
+            className={`prev-${galleryId} hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-md bg-bg-primary/80 backdrop-blur-sm border border-border-subtle text-text-secondary hover:border-accent hover:text-accent transition-all duration-300`}
           >
             <ChevronLeft size={18} />
           </button>
           <button
             aria-label="Scorri a destra"
-            className={`next-${title.replace(/\s/g, "")} hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-md bg-bg-primary/80 backdrop-blur-sm border border-border-subtle text-text-secondary hover:border-accent hover:text-accent transition-all duration-300`}
+            className={`next-${galleryId} hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-md bg-bg-primary/80 backdrop-blur-sm border border-border-subtle text-text-secondary hover:border-accent hover:text-accent transition-all duration-300`}
           >
             <ChevronRight size={18} />
           </button>

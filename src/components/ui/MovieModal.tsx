@@ -128,7 +128,7 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
             <button
               onClick={onClose}
               aria-label="Chiudi"
-              className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-md bg-bg-primary/70 backdrop-blur-sm text-text-secondary hover:text-text-primary transition-colors duration-300"
+              className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-md bg-bg-primary/70 backdrop-blur-sm text-text-secondary hover:text-text-primary transition-colors duration-300 cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -149,17 +149,29 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
                   {movie.type === "serie" ? "Serie" : "Film"}
                 </span>
 
-                {/* Durata film */}
-                {movie.type === "film" && movie.runtime && (
-                  <>
-                    <span className="text-text-muted text-xs">•</span>
-                    <span className="text-text-secondary text-xs">
-                      {formatRuntime(movie.runtime)}
-                    </span>
-                  </>
-                )}
+                {/* Runtime */}
+                {movie.type === "film" &&
+                  movie.runtime !== undefined &&
+                  movie.runtime > 0 && (
+                    <>
+                      <span className="text-text-muted text-xs">•</span>
+                      <span className="text-text-secondary text-xs">
+                        {formatRuntime(movie.runtime)}
+                      </span>
+                    </>
+                  )}
+                {/* {movie.type === "film" &&
+                  movie.runtime &&
+                  movie.runtime > 0 && (
+                    <>
+                      <span className="text-text-muted text-xs">•</span>
+                      <span className="text-text-secondary text-xs">
+                        {formatRuntime(movie.runtime)}
+                      </span>
+                    </>
+                  )} */}
 
-                {/* Stagioni serie */}
+                {/* Season */}
                 {movie.type === "serie" && movie.numberOfSeasons && (
                   <>
                     <span className="text-text-muted text-xs">•</span>
