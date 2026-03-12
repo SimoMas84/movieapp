@@ -102,7 +102,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
               </h1>
 
               {/* Meta — Film · Durata · Anno · Rating */}
-              <div className="flex items-center gap-3 flex-wrap mb-3">
+              <div className="flex items-center gap-2 flex-wrap mb-3">
                 <span className="text-xs px-2 py-1 rounded-sm border border-accent/30 text-accent bg-accent/10">
                   Film
                 </span>
