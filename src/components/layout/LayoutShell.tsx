@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import SplashScreen from "@/components/layout/SplashScreen";
 import Footer from "@/components/layout/Footer";
 import CookieBanner from "@/components/layout/CookieBanner";
+import { ToastProvider } from "@/context/ToastContext";
+import Toast from "@/components/ui/Toast";
 
 /* ============================================================
    LAYOUT SHELL
@@ -29,10 +31,13 @@ export default function LayoutShell({ children }: LayoutShellProps) {
 
   return (
     <>
-      <SplashScreen />
-      <main className="relative z-10">{children}</main>
-      <Footer />
-      <CookieBanner />
+      <ToastProvider>
+        <SplashScreen />
+        <main className="relative z-10">{children}</main>
+        <Footer />
+        <CookieBanner />
+        <Toast />
+      </ToastProvider>
     </>
   );
 }
