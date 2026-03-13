@@ -16,6 +16,10 @@ interface MovieCardProps {
   movie: Movie;
   index: number;
   onSelect: (movie: Movie) => void;
+  /** Called after successful removal from favorites (used by FavoritesGrid) */
+  onFavoriteRemoved?: () => void;
+  /** Called after successful removal from watchlist (used by WatchlistGrid) */
+  onWatchlistRemoved?: () => void;
 }
 
 /* ============================================================
@@ -36,11 +40,18 @@ const TYPE_LABELS = {
    Vertical poster card with rating, actions,
    title, type, genre and year.
    Opens MovieModal on click.
-   Favorites and watchlist are synced with Supabase.
+   Favorites and watchlist are synced with Supabase via
+   the global UserListsContext (no per-card queries).
    ============================================================ */
-export default function MovieCard({ movie, index, onSelect }: MovieCardProps) {
+export default function MovieCard({
+  movie,
+  index,
+  onSelect,
+  onFavoriteRemoved,
+  onWatchlistRemoved,
+}: MovieCardProps) {
   const { isFavorite, isWatchlist, toggleFavorite, toggleWatchlist } =
-    useMovieActions(movie);
+    useMovieActions(movie, { onFavoriteRemoved, onWatchlistRemoved });
 
   const posterUrl = movie.poster
     ? `https://image.tmdb.org/t/p/w500${movie.poster}`

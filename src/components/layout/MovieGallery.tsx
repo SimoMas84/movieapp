@@ -16,6 +16,10 @@ interface MovieGalleryProps {
   title?: string;
   movies: Movie[];
   variant?: "default" | "upcoming";
+  /** If provided, called with movie.id after successful removal from favorites */
+  onFavoriteRemoved?: (movieId: number) => void;
+  /** If provided, called with movie.id after successful removal from watchlist */
+  onWatchlistRemoved?: (movieId: number) => void;
 }
 
 /* =============================================
@@ -23,11 +27,15 @@ interface MovieGalleryProps {
    Horizontal scrolling gallery with free mode,
    desktop navigation arrows and MovieModal.
    Supports "upcoming" variant for unreleased movies.
+   Supports onFavoriteRemoved / onWatchlistRemoved
+   callbacks for Favorites and Watchlist pages.
    ============================================= */
 export default function MovieGallery({
   title,
   movies,
   variant = "default",
+  onFavoriteRemoved,
+  onWatchlistRemoved,
 }: MovieGalleryProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
@@ -102,7 +110,21 @@ export default function MovieGallery({
                     onSelect={handleSelect}
                   />
                 ) : (
-                  <MovieCard movie={movie} index={i} onSelect={handleSelect} />
+                  <MovieCard
+                    movie={movie}
+                    index={i}
+                    onSelect={handleSelect}
+                    onFavoriteRemoved={
+                      onFavoriteRemoved
+                        ? () => onFavoriteRemoved(movie.id)
+                        : undefined
+                    }
+                    onWatchlistRemoved={
+                      onWatchlistRemoved
+                        ? () => onWatchlistRemoved(movie.id)
+                        : undefined
+                    }
+                  />
                 )}
               </SwiperSlide>
             ))}
