@@ -5,6 +5,7 @@ import SplashScreen from "@/components/layout/SplashScreen";
 import Footer from "@/components/layout/Footer";
 import CookieBanner from "@/components/layout/CookieBanner";
 import { ToastProvider } from "@/context/ToastContext";
+import { UserListsProvider } from "@/context/UserListsContext";
 import Toast from "@/components/ui/Toast";
 
 /* ============================================================
@@ -13,6 +14,10 @@ import Toast from "@/components/ui/Toast";
    Footer and CookieBanner based on current route.
    Navbar is rendered separately in layout.tsx as a Server
    Component to allow Supabase session access via next/headers.
+   UserListsProvider wraps the app so favorites and watchlist
+   state is shared globally across all cards and pages.
+   ToastProvider must be the outer wrapper since UserListsContext
+   uses toast notifications internally.
    ============================================================ */
 
 const AUTH_ROUTES = ["/login", "/register", "/auth"];
@@ -30,34 +35,35 @@ export default function LayoutShell({ children }: LayoutShellProps) {
   }
 
   return (
-    <>
-      <ToastProvider>
+    <ToastProvider>
+      <UserListsProvider>
         <SplashScreen />
         <main className="relative z-10">{children}</main>
         <Footer />
         <CookieBanner />
         <Toast />
-      </ToastProvider>
-    </>
+      </UserListsProvider>
+    </ToastProvider>
   );
 }
 
 // "use client";
 
 // import { usePathname } from "next/navigation";
-// import Navbar from "@/components/layout/Navbar";
 // import SplashScreen from "@/components/layout/SplashScreen";
 // import Footer from "@/components/layout/Footer";
 // import CookieBanner from "@/components/layout/CookieBanner";
+// import { ToastProvider } from "@/context/ToastContext";
+// import Toast from "@/components/ui/Toast";
 
 // /* ============================================================
 //    LAYOUT SHELL
-//    Conditionally renders Navbar, Footer, SplashScreen and
-//    CookieBanner. Auth pages (login, register) are rendered
-//    standalone without the main layout chrome.
+//    Client component that conditionally renders SplashScreen,
+//    Footer and CookieBanner based on current route.
+//    Navbar is rendered separately in layout.tsx as a Server
+//    Component to allow Supabase session access via next/headers.
 //    ============================================================ */
 
-// /* Routes that should NOT show navbar, footer and splash */
 // const AUTH_ROUTES = ["/login", "/register", "/auth"];
 
 // interface LayoutShellProps {
@@ -66,7 +72,6 @@ export default function LayoutShell({ children }: LayoutShellProps) {
 
 // export default function LayoutShell({ children }: LayoutShellProps) {
 //   const pathname = usePathname();
-
 //   const isAuthPage = AUTH_ROUTES.some((route) => pathname.startsWith(route));
 
 //   if (isAuthPage) {
@@ -75,11 +80,13 @@ export default function LayoutShell({ children }: LayoutShellProps) {
 
 //   return (
 //     <>
-//       <SplashScreen />
-//       <Navbar />
-//       <main className="relative z-10">{children}</main>
-//       <Footer />
-//       <CookieBanner />
+//       <ToastProvider>
+//         <SplashScreen />
+//         <main className="relative z-10">{children}</main>
+//         <Footer />
+//         <CookieBanner />
+//         <Toast />
+//       </ToastProvider>
 //     </>
 //   );
 // }
