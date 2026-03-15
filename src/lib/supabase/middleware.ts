@@ -1,5 +1,13 @@
+/* ============================================================
+   SUPABASE MIDDLEWARE
+   Refreshes the session on every request and redirects
+   unauthenticated users away from protected routes.
+   ============================================================ */
+
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+
+const PROTECTED_ROUTES = ["/profile", "/favorites", "/watchlist"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -25,12 +33,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session — fondamentale, non rimuovere!
+  /* ── Refresh session — do not remove, required by Supabase SSR ── */
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Proteggi le rotte private
-  const protectedRoutes = ["/profile", "/favorites", "/watchlist"];
-  const isProtected = protectedRoutes.some((route) =>
+  /* ── Redirect unauthenticated users from protected routes ── */
+  const isProtected = PROTECTED_ROUTES.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
 

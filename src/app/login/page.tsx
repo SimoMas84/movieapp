@@ -1,5 +1,9 @@
 "use client";
 
+/* ============================================================
+   LOGIN PAGE
+   ============================================================ */
+
 import { useActionState, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Home } from "lucide-react";
@@ -7,16 +11,13 @@ import Link from "next/link";
 import { login, type ActionState } from "@/app/auth/actions";
 import FloatingInput from "@/components/ui/FloatingInput";
 
-/* ============================================================
-   LOGIN PAGE
-   ============================================================ */
-
 const initialState: ActionState = { error: null };
 
-/* ── Validation rules ── */
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const emailRules = [
   {
-    test: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    test: (v: string) => EMAIL_REGEX.test(v),
     message: "Inserisci un indirizzo email valido",
   },
 ];
@@ -28,7 +29,6 @@ const passwordRules = [
   },
 ];
 
-/* ── Error mapping ── */
 function mapError(error: string): string {
   if (error.includes("Invalid login credentials"))
     return "Email o password non corretti";
@@ -44,8 +44,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const isFormValid =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 8;
+  const isFormValid = EMAIL_REGEX.test(email) && password.length >= 8;
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center px-4 py-6 relative overflow-hidden">
@@ -72,7 +71,6 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-surface-1 border border-white/[0.08] rounded-2xl p-8 shadow-2xl">
-          {/* Server error */}
           <form action={formAction} className="flex flex-col gap-3" noValidate>
             <FloatingInput
               name="email"
@@ -94,7 +92,6 @@ export default function LoginPage() {
               rules={passwordRules}
             />
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={isPending || !isFormValid}
@@ -109,33 +106,33 @@ export default function LoginPage() {
                 "Accedi"
               )}
             </button>
-            <div>
-              {/* Password dimenticata — sotto il tasto, tab order naturale */}
-              <p className="text-center">
-                <Link
-                  href="/forgot-password"
-                  className="text-text-secondary text-xs hover:text-accent transition-colors duration-200"
-                >
-                  Password dimenticata?
-                </Link>
-              </p>
-              {/* Error — fixed height slot, no layout shift */}
-              <div className="h-10 flex items-center justify-center">
-                <AnimatePresence>
-                  {state.error && (
-                    <motion.p
-                      className="w-full bg-red-500/10 border border-red-500/20 rounded-xl py-2 px-4 text-red-400 text-sm text-center"
-                      style={{ textShadow: "0 0 12px rgba(239,68,68,0.6)" }}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {mapError(state.error)}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
+
+            {/* Password dimenticata — below submit, natural tab order */}
+            <p className="text-center">
+              <Link
+                href="/forgot-password"
+                className="text-text-secondary text-xs hover:text-accent transition-colors duration-200"
+              >
+                Password dimenticata?
+              </Link>
+            </p>
+
+            {/* Error — fixed height slot, no layout shift */}
+            <div className="h-10 flex items-center justify-center">
+              <AnimatePresence>
+                {state.error && (
+                  <motion.p
+                    className="w-full bg-red-500/10 border border-red-500/20 rounded-xl py-2 px-4 text-red-400 text-sm text-center"
+                    style={{ textShadow: "0 0 12px rgba(239,68,68,0.6)" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {mapError(state.error)}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           </form>
         </div>
@@ -151,7 +148,7 @@ export default function LoginPage() {
           </Link>
         </p>
 
-        {/* Home link — bottom centered */}
+        {/* Home link */}
         <div className="flex justify-center mt-6">
           <Link
             href="/"

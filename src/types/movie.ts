@@ -1,3 +1,10 @@
+/* ============================================================
+   MOVIE TYPE
+   Shared type for both films and TV series throughout the app.
+   Fields marked optional are type-specific or lazy-loaded
+   (e.g. trailerKey is fetched on modal open, not on list load).
+   ============================================================ */
+
 export interface Movie {
   id: number;
   title: string;
@@ -8,6 +15,7 @@ export interface Movie {
   rating: number;
   poster: string | null;
   backdrop: string | null;
+  /** Fetched on demand when opening the modal */
   trailerKey: string | null;
   plot: string;
   cast: string[];

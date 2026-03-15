@@ -1,3 +1,9 @@
+/* ============================================================
+   PERSON DETAIL PAGE — Server Component
+   Fetches person details, movie and TV credits,
+   and genre lists in parallel.
+   ============================================================ */
+
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import {
@@ -11,16 +17,10 @@ import {
 import MovieGallery from "@/components/layout/MovieGallery";
 import { toMovie } from "@/lib/utils";
 
-/* =============================================
-   PROPS
-   ============================================= */
 interface PersonPageProps {
   params: Promise<{ id: string }>;
 }
 
-/* =============================================
-   HELPERS
-   ============================================= */
 function formatDate(date?: string): string {
   if (!date) return "";
   return new Date(date).toLocaleDateString("it-IT", {
@@ -30,16 +30,10 @@ function formatDate(date?: string): string {
   });
 }
 
-/* =============================================
-   PERSON DETAIL PAGE — SERVER COMPONENT
-   Fetches person details, movie and TV credits,
-   and genre lists in parallel.
-   ============================================= */
 export default async function PersonPage({ params }: PersonPageProps) {
   const { id } = await params;
   const personId = Number(id);
 
-  /* ── Fetch all data in parallel ── */
   const [person, movieCredits, tvCredits, movieGenres, tvGenres] =
     await Promise.all([
       getPersonDetail(personId),
@@ -78,10 +72,10 @@ export default async function PersonPage({ params }: PersonPageProps) {
 
   return (
     <div className="pt-28 pb-16">
-      {/* ── Hero ── */}
+      {/* Hero */}
       <div className="px-6 md:px-10 max-w-screen-2xl mx-auto mb-16">
         <div className="flex flex-col md:flex-row gap-10 items-start">
-          {/* ── Profile photo ── */}
+          {/* Profile photo */}
           {profileUrl && (
             <div className="relative shrink-0 w-48 md:w-62 lg:w-80 mb-4 aspect-[2/3] rounded-xl overflow-hidden border border-border-subtle shadow-2xl mx-auto md:mx-0">
               <Image
@@ -94,7 +88,7 @@ export default async function PersonPage({ params }: PersonPageProps) {
             </div>
           )}
 
-          {/* ── Info ── */}
+          {/* Info */}
           <div className="flex-1 max-w-3xl">
             {/* Department badge */}
             <span
@@ -112,8 +106,7 @@ export default async function PersonPage({ params }: PersonPageProps) {
               {person.name}
             </h1>
 
-            {/* Birth date and place */}
-            {/* Birth date and place */}
+            {/* Birth info */}
             <div className="flex flex-col gap-2 mb-6">
               {person.birthday && (
                 <p className="text-text-secondary text-sm">
@@ -150,7 +143,8 @@ export default async function PersonPage({ params }: PersonPageProps) {
           </div>
         </div>
       </div>
-      {/* ── Filmografia ── */}
+
+      {/* Filmography header */}
       {(movies.length > 0 || series.length > 0) && (
         <div className="px-6 md:px-10 max-w-screen-2xl mx-auto mb-6 mt-4">
           <div className="border-t border-border-subtle pt-10">
@@ -164,10 +158,7 @@ export default async function PersonPage({ params }: PersonPageProps) {
         </div>
       )}
 
-      {/* ── Movie filmography ── */}
       {movies.length > 0 && <MovieGallery title="Film" movies={movies} />}
-
-      {/* ── TV series filmography ── */}
       {series.length > 0 && <MovieGallery title="Serie TV" movies={series} />}
     </div>
   );

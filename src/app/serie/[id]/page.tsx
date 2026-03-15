@@ -206,7 +206,7 @@ export default async function SeriePage({ params }: SeriePageProps) {
         {related.length > 0 && (
           <section>
             <h2 className="text-xl font-light text-text-primary mb-6">
-              Serie correlate
+              Serie consigliate
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {related.slice(0, 6).map((s) => (

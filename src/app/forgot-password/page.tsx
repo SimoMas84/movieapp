@@ -14,9 +14,11 @@ import FloatingInput from "@/components/ui/FloatingInput";
 
 const initialState: ActionState = { error: null };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const emailRules = [
   {
-    test: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    test: (v: string) => EMAIL_REGEX.test(v),
     message: "Inserisci un indirizzo email valido",
   },
 ];
@@ -36,7 +38,7 @@ export default function ForgotPasswordPage() {
   );
   const [email, setEmail] = useState("");
 
-  const isFormValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isFormValid = EMAIL_REGEX.test(email);
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center px-4 py-6 relative overflow-hidden">

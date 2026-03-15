@@ -1,3 +1,8 @@
+/* ============================================================
+   SUPABASE BROWSER CLIENT
+   Use in Client Components ("use client").
+   ============================================================ */
+
 import { createBrowserClient } from "@supabase/ssr";
 
 export function createClient() {

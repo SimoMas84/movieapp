@@ -12,8 +12,8 @@ import { Eye, EyeOff, Check, X } from "lucide-react";
    - Focus: soft accent inner glow (no hard border)
    - Valid: soft green inner glow + check icon
    - Error: soft red inner glow + x icon
-   - Password with showStrength: always shows strength bar +
-     requirements line below — no overlap, no layout shift
+   - Password with showStrength: strength bar handles all
+     feedback — no error messages shown (no overlap)
    - Eye icon left of check/x
    - No HTML5 native validation popups (noValidate on form)
    ============================================================ */
@@ -77,14 +77,16 @@ export default function FloatingInput({
 
   /* ── Validate ──
      All fields: turn green immediately when all rules pass.
-     Errors (red) only shown after first blur to avoid
-     aggressing the user while still typing.
+     Errors (red) only shown after first blur.
+     showStrength fields: never show text errors — the
+     strength bar provides all visual feedback.
   ── */
   const allRulesPassed = rules.length > 0 && rules.every((r) => r.test(value));
 
-  const errors = hasBlurred
-    ? rules.filter((r) => !r.test(value)).map((r) => r.message)
-    : [];
+  const errors =
+    hasBlurred && !showStrength
+      ? rules.filter((r) => !r.test(value)).map((r) => r.message)
+      : [];
 
   const isValid = allRulesPassed && value.length > 0;
   const hasError = errors.length > 0;
@@ -118,10 +120,6 @@ export default function FloatingInput({
     setHasBlurred(true);
   }, []);
 
-  /* ── Reserve space below:
-     - showStrength fields: always reserve 2 lines (bar + requirements)
-     - other fields: reserve 1 line for error message
-  ── */
   const bottomPadding = showStrength ? "pb-14" : "pb-5";
 
   return (
@@ -213,7 +211,7 @@ export default function FloatingInput({
         </div>
       </div>
 
-      {/* ── Error message — absolute, no layout shift ── */}
+      {/* ── Error message — only for non-showStrength fields ── */}
       <AnimatePresence>
         {hasError && (
           <motion.p

@@ -1,3 +1,8 @@
+/* ============================================================
+   SERIES PAGE — Server Component
+   ============================================================ */
+
+import { Tv } from "lucide-react";
 import { toMovie } from "@/lib/utils";
 import MovieGallery from "@/components/layout/MovieGallery";
 import {
@@ -8,9 +13,6 @@ import {
 } from "@/lib/tmdb";
 import GenreExplorer from "@/components/layout/GenreExplorer";
 
-/* =============================================
-   SERIES PAGE — SERVER COMPONENT
-   ============================================= */
 export default async function SeriesPage() {
   const [upcoming, recent, genres, popular] = await Promise.all([
     getUpcomingSeries(),
@@ -19,35 +21,29 @@ export default async function SeriesPage() {
     getPopularSeries(),
   ]);
 
-  /* ── Convert to Movie type ── */
   const upcomingMovies = upcoming.map((m) => toMovie(m, genres));
   const recentMovies = recent.map((m) => toMovie(m, genres));
   const popularSeries = popular.map((m) => toMovie(m, genres));
 
   return (
-    <div className="pt-24 pb-16">
-      {/* ── Page title ── */}
-      <div className="px-6 md:px-10 mb-12">
-        <h1 className="text-4xl md:text-5xl font-light text-text-primary mb-2">
-          Serie TV
+    <div className="pb-16">
+      {/* Header */}
+      <div className="flex items-end gap-4 px-6 md:px-10 mb-12 pt-32">
+        <Tv size={52} className="text-blue-400 mb-1" />
+        <h1 className="text-4xl lg:text-5xl font-light text-text-primary">
+          Serie
         </h1>
-        <p className="text-text-secondary">Ultime uscite e prossimi arrivi</p>
       </div>
 
-      {/* ── Recent releases gallery ── */}
       <MovieGallery title="Ultime uscite" movies={recentMovies} />
-
-      {/* ── Upcoming series gallery ── */}
       <MovieGallery
         title="Prossimamente"
         movies={upcomingMovies}
         variant="upcoming"
       />
-
-      {/* ── Popular series gallery ── */}
       <MovieGallery title="Serie popolari" movies={popularSeries} />
 
-      {/* ── Genre explorer ── */}
+      {/* Genre explorer */}
       <div className="px-6 md:px-10 mt-16 max-w-screen-2xl mx-auto">
         <h2 className="text-2xl font-light text-text-primary mb-2">
           Esplora per genere

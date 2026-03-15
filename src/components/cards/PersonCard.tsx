@@ -1,5 +1,11 @@
 "use client";
 
+/* ============================================================
+   PERSON CARD COMPONENT
+   Portrait card for actors and directors.
+   Navigates to person detail page on click.
+   ============================================================ */
+
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { tmdbImage } from "@/lib/tmdb";
@@ -24,7 +30,6 @@ export default function PersonCard({
       className="cursor-pointer group"
       onClick={() => router.push(`/person/${id}`)}
     >
-      {/* ── Portrait ── */}
       <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-surface-2 border border-transparent group-hover:border-accent transition-all duration-300">
         {profilePath ? (
           <Image
@@ -42,7 +47,7 @@ export default function PersonCard({
           </div>
         )}
 
-        {/* ── Bottom overlay ── */}
+        {/* Bottom overlay */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-bg-primary/90 to-transparent p-3 pt-10">
           <p className="text-accent text-xs truncate mb-0.5">{department}</p>
           <p className="text-text-primary text-sm font-medium leading-tight truncate">

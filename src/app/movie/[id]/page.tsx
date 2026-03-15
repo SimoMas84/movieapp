@@ -1,3 +1,7 @@
+/* ============================================================
+   MOVIE DETAIL PAGE — Server Component
+   ============================================================ */
+
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,21 +20,21 @@ import {
   tmdbImage,
 } from "@/lib/tmdb";
 
-/* =============================================
-   PROPS
-   ============================================= */
 interface MoviePageProps {
   params: Promise<{ id: string }>;
 }
 
-/* =============================================
-   MOVIE DETAIL PAGE — SERVER COMPONENT
-   ============================================= */
+/* ── Reusable currency formatter ── */
+const currencyFmt = new Intl.NumberFormat("it-IT", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
 export default async function MoviePage({ params }: MoviePageProps) {
   const { id } = await params;
   const movieId = Number(id);
 
-  /* ── Fetch all data in parallel ── */
   const [movie, credits, videos, providers, related, genres] =
     await Promise.all([
       getMovieDetail(movieId),
@@ -41,7 +45,6 @@ export default async function MoviePage({ params }: MoviePageProps) {
       getGenres(),
     ]).catch(() => notFound());
 
-  /* ── Data helpers ── */
   const trailer = videos[0] ?? null;
   const director = credits.crew.find((c) => c.job === "Director");
   const cast = credits.cast.slice(0, 12);
@@ -50,27 +53,13 @@ export default async function MoviePage({ params }: MoviePageProps) {
   const runtime = movie.runtime
     ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m`
     : null;
-  const budget = movie.budget
-    ? new Intl.NumberFormat("it-IT", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      }).format(movie.budget)
-    : null;
-  const revenue = movie.revenue
-    ? new Intl.NumberFormat("it-IT", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      }).format(movie.revenue)
-    : null;
-
-  /* ── Build Movie object for MovieActions ── */
+  const budget = movie.budget ? currencyFmt.format(movie.budget) : null;
+  const revenue = movie.revenue ? currencyFmt.format(movie.revenue) : null;
   const movieObj = toMovie({ ...movie, media_type: "movie" }, genres);
 
   return (
     <>
-      {/* ── Hero — fullscreen backdrop ── */}
+      {/* Hero — fullscreen backdrop */}
       <section className="relative w-full h-svh">
         {backdropUrl && (
           <Image
@@ -81,15 +70,12 @@ export default async function MoviePage({ params }: MoviePageProps) {
             priority
           />
         )}
-
-        {/* Gradients overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-bg-primary/80 via-transparent to-transparent" />
 
-        {/* ── Hero content ── */}
         <div className="absolute bottom-0 left-0 right-0 px-6 md:px-10 pb-16">
           <div className="max-w-screen-2xl mx-auto flex items-end gap-12">
-            {/* ── Poster desktop ── */}
+            {/* Poster — desktop only */}
             <div className="hidden lg:block relative shrink-0 w-74 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-border-subtle">
               {movie.poster_path && (
                 <Image
@@ -101,14 +87,12 @@ export default async function MoviePage({ params }: MoviePageProps) {
               )}
             </div>
 
-            {/* ── Info ── */}
+            {/* Info */}
             <div className="flex-1 w-full">
-              {/* Title */}
               <h1 className="text-3xl md:text-6xl font-light text-text-primary mb-5 leading-tight">
                 {movie.title}
               </h1>
 
-              {/* Meta */}
               <div className="flex items-center gap-2 flex-wrap mb-3">
                 <span className="text-xs px-2 py-1 rounded-sm border border-accent/30 text-accent bg-accent/10">
                   Film
@@ -132,7 +116,6 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 </div>
               </div>
 
-              {/* Director */}
               {director && (
                 <p className="text-text-secondary md:text-base mb-4">
                   Regia di{" "}
@@ -145,7 +128,6 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 </p>
               )}
 
-              {/* Genre chips */}
               <div className="flex gap-2 flex-wrap mb-5">
                 {movie.genres?.map((g) => (
                   <span
@@ -157,21 +139,18 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 ))}
               </div>
 
-              {/* Plot */}
               <p className="text-text-primary md:text-base leading-relaxed line-clamp-4 mb-6">
                 {movie.overview}
               </p>
 
-              {/* Action buttons */}
               <MovieActions movie={movieObj} />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Content sections ── */}
+      {/* Content sections */}
       <div className="px-6 md:px-10 py-16 max-w-screen-2xl mx-auto space-y-16">
-        {/* ── Disponibile su + Box Office ── */}
         {(providers.length > 0 || budget || revenue) && (
           <div className="flex flex-col md:flex-row gap-16">
             {providers.length > 0 && (
@@ -226,22 +205,19 @@ export default async function MoviePage({ params }: MoviePageProps) {
           </div>
         )}
 
-        {/* ── Trailer ── */}
         {trailer && (
           <TrailerPlayer trailerKey={trailer.key} title={movie.title ?? ""} />
         )}
 
-        {/* ── Cast ── */}
         <section>
           <h2 className="text-xl font-light text-text-primary mb-6">Cast</h2>
           <CastGallery cast={cast} />
         </section>
 
-        {/* ── Related movies ── */}
         {related.length > 0 && (
           <section>
             <h2 className="text-xl font-light text-text-primary mb-6">
-              Film correlati
+              Film consigliati
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {related.slice(0, 6).map((m) => (

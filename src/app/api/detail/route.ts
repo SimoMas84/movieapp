@@ -1,13 +1,19 @@
+/* ============================================================
+   DETAIL API ROUTE
+   Returns runtime, seasons and episodes for a movie or series.
+   Called client-side when opening the movie modal.
+   ============================================================ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getMovieDetail, getSeriesDetail } from "@/lib/tmdb";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const id = Number(searchParams.get("id"));
-  const type = searchParams.get("type") as "movie" | "tv";
+  const type = searchParams.get("type");
 
-  if (!id || !type) {
-    return NextResponse.json({ error: "Missing params" }, { status: 400 });
+  if (!id || (type !== "movie" && type !== "tv")) {
+    return NextResponse.json({ error: "Missing or invalid params" }, { status: 400 });
   }
 
   try {

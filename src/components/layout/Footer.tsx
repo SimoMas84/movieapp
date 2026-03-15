@@ -1,3 +1,7 @@
+/* ============================================================
+   FOOTER COMPONENT
+   ============================================================ */
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -7,7 +11,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-border-subtle bg-bg-primary md:px-10 py-8">
       <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        {/* ── Logo + credits TMDB + Privacy ── */}
+        {/* Logo + TMDB credits + Privacy */}
         <div className="flex items-center justify-center md:justify-start gap-3">
           <span className="text-text-muted text-xs">
             Dati e immagini forniti da
@@ -34,7 +38,7 @@ export default function Footer() {
           </Link>
         </div>
 
-        {/* ── Copyright + Author ── */}
+        {/* Copyright + Author */}
         <div className="flex items-center justify-center md:justify-end gap-3">
           <p className="text-text-muted text-xs">© {year} MovieApp</p>
           <span className="text-text-muted text-xs">·</span>

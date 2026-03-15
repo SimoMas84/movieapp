@@ -1,5 +1,11 @@
 "use client";
 
+/* ============================================================
+   SEARCH BAR COMPONENT
+   Full-screen search panel with movie, series and people
+   results. Opens modal on movie/series click.
+   ============================================================ */
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
@@ -17,15 +23,14 @@ const MAX_PEOPLE = 3;
 
 export default function SearchBar() {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [query, setQuery] = useState<string>("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<Movie[]>([]);
   const [people, setPeople] = useState<TMDBPerson[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /* ── Search logic ── */
   const handleSearch = useCallback(async (value: string) => {
     setQuery(value);
     if (value.length < MIN_QUERY_LENGTH) {
@@ -56,7 +61,6 @@ export default function SearchBar() {
     setPeople([]);
   }, []);
 
-  /* ── Select person — navigate to person page ── */
   const handlePersonSelect = useCallback(
     (person: TMDBPerson) => {
       handleClose();
@@ -65,15 +69,24 @@ export default function SearchBar() {
     [handleClose, router],
   );
 
-  /* ── Select movie — fetch trailer and open modal ── */
   const handleSelect = useCallback(
     async (movie: Movie) => {
       try {
-        const res = await fetch(
-          `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
-        );
-        const { trailerKey } = await res.json();
-        setSelectedMovie({ ...movie, trailerKey });
+        const type = movie.type === "serie" ? "tv" : "movie";
+        const [trailerRes, detailRes] = await Promise.all([
+          fetch(`/api/trailer?id=${movie.id}&type=${type}`),
+          fetch(`/api/detail?id=${movie.id}&type=${type}`),
+        ]);
+        const { trailerKey } = await trailerRes.json();
+        const { runtime, numberOfSeasons, numberOfEpisodes } =
+          await detailRes.json();
+        setSelectedMovie({
+          ...movie,
+          trailerKey,
+          runtime,
+          numberOfSeasons,
+          numberOfEpisodes,
+        });
       } catch {
         setSelectedMovie(movie);
       }
@@ -81,10 +94,6 @@ export default function SearchBar() {
     },
     [handleClose],
   );
-
-  const handleModalClose = useCallback(() => {
-    setSelectedMovie(null);
-  }, []);
 
   /* ── Close on click outside ── */
   useEffect(() => {
@@ -104,7 +113,7 @@ export default function SearchBar() {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* ── Search icon button ── */}
+      {/* Search icon button */}
       <motion.button
         onClick={isOpen ? handleClose : handleOpen}
         aria-label="Apri ricerca"
@@ -135,7 +144,7 @@ export default function SearchBar() {
         </AnimatePresence>
       </motion.button>
 
-      {/* ── Search panel ── */}
+      {/* Search panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -166,7 +175,7 @@ export default function SearchBar() {
               )}
             </div>
 
-            {/* ── Dropdown results ── */}
+            {/* Dropdown results */}
             <AnimatePresence>
               {hasResults && (
                 <motion.div
@@ -176,7 +185,7 @@ export default function SearchBar() {
                   animate="visible"
                   exit="hidden"
                 >
-                  {/* ── Persone ── */}
+                  {/* People */}
                   {people.length > 0 && (
                     <>
                       <div className="px-4 py-2 border-b border-border-subtle">
@@ -190,7 +199,6 @@ export default function SearchBar() {
                           onClick={() => handlePersonSelect(person)}
                           className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2 cursor-pointer transition-colors duration-200 border-b border-border-subtle last:border-none"
                         >
-                          {/* Foto */}
                           <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 bg-surface-2 border border-border-subtle">
                             {person.profile_path ? (
                               <Image
@@ -205,8 +213,6 @@ export default function SearchBar() {
                               </div>
                             )}
                           </div>
-
-                          {/* Info */}
                           <div className="flex-1 min-w-0">
                             <h4 className="text-text-primary text-sm font-medium truncate">
                               {person.name}
@@ -222,7 +228,7 @@ export default function SearchBar() {
                     </>
                   )}
 
-                  {/* ── Film e Serie ── */}
+                  {/* Movies and series */}
                   {results.length > 0 && (
                     <>
                       {people.length > 0 && (
@@ -239,7 +245,7 @@ export default function SearchBar() {
                           className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2 cursor-pointer transition-colors duration-200 border-b border-border-subtle last:border-none"
                         >
                           {/* Poster */}
-                          <div className="relative w-10 h-14 rounded-md overflow-hidden shrink-0 bg-surface-2">
+                          <div className="relative w-10 h-14 rounded-sm overflow-hidden shrink-0 bg-surface-2">
                             {movie.poster && (
                               <Image
                                 src={`https://image.tmdb.org/t/p/w92${movie.poster}`}
@@ -250,21 +256,19 @@ export default function SearchBar() {
                             )}
                           </div>
 
-                          {/* Info */}
+                          {/* Info — title / type · year / rating */}
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-text-primary text-sm font-medium truncate">
+                            <h4 className="text-text-primary text-md truncate mb-0.5">
                               {movie.title}
                             </h4>
-                            <p className="text-text-muted text-xs mt-0.5">
-                              {movie.year} · {movie.director}
+                            <p className="text-text-muted text-xs mb-0.5">
+                              {movie.type === "serie" ? "Serie" : "Film"}
+                              {movie.year ? ` · ${movie.year}` : ""}
                             </p>
-                            <div className="flex items-center gap-1 mt-1">
+                            <div className="flex items-center gap-1">
                               <Star size={10} className="text-accent" />
                               <span className="text-accent text-xs">
                                 {formatRating(movie.rating)}
-                              </span>
-                              <span className="text-text-muted text-xs ml-2">
-                                {movie.type === "serie" ? "Serie" : "Film"}
                               </span>
                             </div>
                           </div>
@@ -276,7 +280,7 @@ export default function SearchBar() {
               )}
             </AnimatePresence>
 
-            {/* ── No results ── */}
+            {/* No results */}
             {query.length >= MIN_QUERY_LENGTH && !hasResults && (
               <div className="mt-2 bg-surface-1 border border-border-subtle rounded-xl px-4 py-6 max-w-2xl mx-auto text-center">
                 <p className="text-text-muted text-sm">
@@ -289,8 +293,10 @@ export default function SearchBar() {
         )}
       </AnimatePresence>
 
-      {/* Movie modal */}
-      <MovieModal movie={selectedMovie} onClose={handleModalClose} />
+      <MovieModal
+        movie={selectedMovie}
+        onClose={() => setSelectedMovie(null)}
+      />
     </div>
   );
 }

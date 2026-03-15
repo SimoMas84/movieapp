@@ -1,43 +1,28 @@
-/* =============================================
-   MOVIEAPP — ANIMATION VARIANTS
-   Centralized framer-motion variants for
-   consistent animations across the app
-   ============================================= */
+/* ============================================================
+   ANIMATION VARIANTS
+   Centralized Framer Motion variants for consistent
+   animations across the app.
+   ============================================================ */
 
-import { Variants } from 'motion/react';
+import { Variants } from "motion/react";
 
-/* =============================================
-   NAVBAR — MOBILE MENU CONTAINER
-   Expands from 0x0 to full size
-   ============================================= */
+/* ── Mobile menu container — expands from 0×0 to full size ── */
 export const menuContainer: Variants = {
   open: {
-    width: '320px',
-    height: '500px',
+    width: "320px",
+    height: "500px",
     opacity: 1,
-    transition: {
-      duration: 0.75,
-      type: 'tween',
-      ease: [0.76, 0, 0.24, 1],
-    },
+    transition: { duration: 0.75, type: "tween", ease: [0.76, 0, 0.24, 1] },
   },
   closed: {
-    width: '0px',
-    height: '0px',
+    width: "0px",
+    height: "0px",
     opacity: 0,
-    transition: {
-      duration: 0.75,
-      delay: 0.35,
-      type: 'tween',
-      ease: [0.76, 0, 0.24, 1],
-    },
+    transition: { duration: 0.75, delay: 0.35, type: "tween", ease: [0.76, 0, 0.24, 1] },
   },
 };
 
-/* =============================================
-   NAVBAR — NAV LINKS
-   Perspective rotation effect on entry/exit
-   ============================================= */
+/* ── Nav links — perspective rotation on entry/exit ── */
 export const navLinkVariants: Variants = {
   initial: {
     opacity: 0,
@@ -59,31 +44,23 @@ export const navLinkVariants: Variants = {
   }),
   exit: {
     opacity: 0,
-    transition: {
-      duration: 0.5,
-      type: 'tween',
-      ease: [0.76, 0, 0.24, 1],
-    },
+    transition: { duration: 0.5, type: "tween", ease: [0.76, 0, 0.24, 1] },
   },
 };
 
-/* =============================================
-   NAVBAR — HAMBURGER BUTTON SLIDER
-   ============================================= */
+/* ── Hamburger button slider ── */
 export const buttonSlider = {
   open: {
-    top: '-100%' as string,
-    transition: { duration: 0.5, type: 'tween' as const, ease: [0.76, 0, 0.24, 1] },
+    top: "-100%" as string,
+    transition: { duration: 0.5, type: "tween" as const, ease: [0.76, 0, 0.24, 1] },
   },
   closed: {
-    top: '0%' as string,
-    transition: { duration: 0.5, type: 'tween' as const, ease: [0.76, 0, 0.24, 1] },
+    top: "0%" as string,
+    transition: { duration: 0.5, type: "tween" as const, ease: [0.76, 0, 0.24, 1] },
   },
 } as const;
 
-/* =============================================
-   NAVBAR — HAMBURGER LINES
-   ============================================= */
+/* ── Hamburger lines ── */
 export const hamburgerTop = (isOpen: boolean) => ({
   rotate: isOpen ? 45 : 0,
   y: isOpen ? 0 : -16,
@@ -102,160 +79,49 @@ export const hamburgerBottom = (isOpen: boolean) => ({
   transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] as const },
 });
 
-/* =============================================
-   MODAL — BACKDROP
-   Fade in/out
-   ============================================= */
+/* ── Modal backdrop — fade in/out ── */
 export const modalBackdrop: Variants = {
-  hidden: {
-    opacity: 0,
-    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
-  },
-  visible: {
-    opacity: 1,
-    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
-  },
+  hidden:  { opacity: 0, transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] } },
+  visible: { opacity: 1, transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] } },
 };
 
-/* =============================================
-   MODAL — PANEL
-   Expands from 0x0 like mobile menu
-   ============================================= */
+/* ── Modal panel — scale from 0 ── */
 export const modalPanel: Variants = {
-  hidden: {
-    scale: 0,
-    opacity: 0,
-    transition: {
-      duration: 0.5,
-      type: 'tween',
-      ease: [0.76, 0, 0.24, 1],
-    },
-  },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: {
-      duration: 0.5,
-      type: 'tween',
-      ease: [0.76, 0, 0.24, 1],
-    },
-  },
+  hidden:  { scale: 0, opacity: 0, transition: { duration: 0.5, type: "tween", ease: [0.76, 0, 0.24, 1] } },
+  visible: { scale: 1, opacity: 1, transition: { duration: 0.5, type: "tween", ease: [0.76, 0, 0.24, 1] } },
 };
 
-/* =============================================
-   MODAL — WRAPPER
-   Fade in/out for the outer container
-   ============================================= */
+/* ── Modal wrapper — fade in/out ── */
 export const modalWrapper: Variants = {
-  hidden: {
-    opacity: 0,
-    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
-  },
-  visible: {
-    opacity: 1,
-    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
-  },
+  hidden:  { opacity: 0, transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] } },
+  visible: { opacity: 1, transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] } },
 };
 
-/* =============================================
-   MOVIE CARD — ENTRY ANIMATION
-   Fade in + slide up on viewport enter
-   ============================================= */
+/* ── Movie card — fade in + slide up on viewport enter ── */
 export const cardEntry: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-  },
+  hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.4,
-      delay: i * 0.08,
-      ease: [0.215, 0.61, 0.355, 1],
-    },
+    transition: { duration: 0.4, delay: i * 0.08, ease: [0.215, 0.61, 0.355, 1] },
   }),
 };
 
-/* =============================================
-   GENRE FILTER — CARD LAYOUT ANIMATION
-   Animate card reorder on filter change
-   ============================================= */
+/* ── Genre filter card — animate reorder on filter change ── */
 export const filterCard: Variants = {
-  hidden: {
-    opacity: 0,
-    scale: 0.9,
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.3,
-      ease: [0.215, 0.61, 0.355, 1],
-    },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.9,
-    transition: {
-      duration: 0.2,
-    },
-  },
+  hidden:  { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: [0.215, 0.61, 0.355, 1] } },
+  exit:    { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
 };
 
-/* =============================================
-   SEARCHBAR — INPUT EXPANSION
-   ============================================= */
-export const searchInput: Variants = {
-  hidden: {
-    width: 0,
-    opacity: 0,
-    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
-  },
-  visible: {
-    width: "240px",
-    opacity: 1,
-    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
-  },
-};
-
-/* =============================================
-   SEARCHBAR — SEARCH ICON BUTTON
-   ============================================= */
-export const searchIcon: Variants = {
-  hidden: { opacity: 0, transition: { duration: 0.2 } },
-  visible: { opacity: 1, transition: { duration: 0.2 } },
-};
-
-/* =============================================
-   SEARCHBAR — DROPDOWN
-   ============================================= */
+/* ── Search dropdown ── */
 export const searchDropdown: Variants = {
-  hidden: {
-    opacity: 0,
-    y: -8,
-    transition: { duration: 0.2, ease: [0.76, 0, 0.24, 1] },
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.2, ease: [0.76, 0, 0.24, 1] },
-  },
+  hidden:  { opacity: 0, y: -8, transition: { duration: 0.2, ease: [0.76, 0, 0.24, 1] } },
+  visible: { opacity: 1, y:  0, transition: { duration: 0.2, ease: [0.76, 0, 0.24, 1] } },
 };
 
-/* =============================================
-   SEARCHBAR — SEARCH PANEL
-   Drops below navbar
-   ============================================= */
+/* ── Search panel — drops below navbar ── */
 export const searchPanel: Variants = {
-  hidden: {
-    opacity: 0,
-    y: -10,
-    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] },
-  },
+  hidden:  { opacity: 0, y: -10, transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] } },
+  visible: { opacity: 1, y:   0, transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] } },
 };

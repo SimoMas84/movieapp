@@ -1,6 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
-
 /* ============================================================
    AUTH CALLBACK ROUTE
    Handles the token exchange after email confirmation.
@@ -9,8 +6,11 @@ import { NextResponse } from "next/server";
    email confirmed page.
    ============================================================ */
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
 
   if (code) {

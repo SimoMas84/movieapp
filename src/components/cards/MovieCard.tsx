@@ -1,5 +1,12 @@
 "use client";
 
+/* ============================================================
+   MOVIE CARD COMPONENT
+   Vertical poster card with rating, actions, type, genre
+   and year. Opens MovieModal on click.
+   Favorites and watchlist synced via UserListsContext.
+   ============================================================ */
+
 import { useCallback } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
@@ -9,9 +16,6 @@ import { formatRating } from "@/lib/utils";
 import { cardEntry } from "@/lib/animations";
 import { useMovieActions } from "@/hooks/useMovieActions";
 
-/* ============================================================
-   PROPS INTERFACE
-   ============================================================ */
 interface MovieCardProps {
   movie: Movie;
   index: number;
@@ -22,27 +26,9 @@ interface MovieCardProps {
   onWatchlistRemoved?: () => void;
 }
 
-/* ============================================================
-   CONSTANTS
-   ============================================================ */
-const TYPE_STYLES = {
-  film: "text-accent",
-  serie: "text-blue-400",
-} as const;
+const TYPE_STYLES = { film: "text-accent", serie: "text-blue-400" } as const;
+const TYPE_LABELS = { film: "Film", serie: "Serie" } as const;
 
-const TYPE_LABELS = {
-  film: "Film",
-  serie: "Serie",
-} as const;
-
-/* ============================================================
-   MOVIE CARD COMPONENT
-   Vertical poster card with rating, actions,
-   title, type, genre and year.
-   Opens MovieModal on click.
-   Favorites and watchlist are synced with Supabase via
-   the global UserListsContext (no per-card queries).
-   ============================================================ */
 export default function MovieCard({
   movie,
   index,
@@ -57,9 +43,7 @@ export default function MovieCard({
     ? `https://image.tmdb.org/t/p/w500${movie.poster}`
     : null;
 
-  const handleSelect = useCallback(() => {
-    onSelect(movie);
-  }, [movie, onSelect]);
+  const handleSelect = useCallback(() => onSelect(movie), [movie, onSelect]);
 
   return (
     <motion.div
@@ -70,7 +54,6 @@ export default function MovieCard({
       custom={index}
       onClick={handleSelect}
     >
-      {/* Poster */}
       <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-surface-2 border border-transparent hover:border-accent hover:brightness-110 transition-all duration-300">
         {posterUrl ? (
           <Image
@@ -90,7 +73,6 @@ export default function MovieCard({
 
         {/* Top bar — rating + actions */}
         <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-2">
-          {/* Rating */}
           <div className="flex items-center gap-1 bg-bg-primary/70 backdrop-blur-sm rounded-md px-1.5 py-1">
             <Star size={10} className="text-accent" />
             <span className="text-accent text-xs font-medium">
@@ -98,7 +80,6 @@ export default function MovieCard({
             </span>
           </div>
 
-          {/* Action buttons */}
           <div className="flex flex-col gap-1.5">
             <button
               onClick={toggleFavorite}

@@ -1,6 +1,8 @@
-/* =============================================
-   MOVIEAPP — PERSON TYPES
-   ============================================= */
+/* ============================================================
+   PERSON TYPE
+   Used for directors and actors throughout the app.
+   Most fields are optional as TMDB data may be incomplete.
+   ============================================================ */
 
 export type PersonRole = "director" | "actor";
 

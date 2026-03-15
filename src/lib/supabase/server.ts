@@ -1,3 +1,9 @@
+/* ============================================================
+   SUPABASE SERVER CLIENT
+   Use in Server Components and Server Actions.
+   Cookies are read from next/headers.
+   ============================================================ */
+
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -18,7 +24,8 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Server Component — i cookie vengono gestiti dal middleware
+            /* Called from a Server Component — cookies are
+               managed by the middleware, safe to ignore */
           }
         },
       },

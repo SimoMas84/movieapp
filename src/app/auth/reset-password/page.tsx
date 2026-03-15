@@ -16,18 +16,12 @@ import FloatingInput from "@/components/ui/FloatingInput";
 const initialState: ActionState = { error: null };
 
 const passwordRules = [
-  {
-    test: (v: string) => v.length >= 8,
-    message: "Almeno 8 caratteri",
-  },
+  { test: (v: string) => v.length >= 8, message: "Almeno 8 caratteri" },
   {
     test: (v: string) => /[A-Z]/.test(v),
     message: "Almeno una lettera maiuscola",
   },
-  {
-    test: (v: string) => /[0-9]/.test(v),
-    message: "Almeno un numero",
-  },
+  { test: (v: string) => /[0-9]/.test(v), message: "Almeno un numero" },
   {
     test: (v: string) => /[^A-Za-z0-9]/.test(v),
     message: "Almeno un simbolo (es. !@#$)",
@@ -41,7 +35,7 @@ function isPasswordValid(v: string): boolean {
 function mapError(error: string): string {
   if (error.includes("Password should be"))
     return "La password non rispetta i requisiti minimi";
-  if (error.includes("same password"))
+  if (error.includes("New password should be different"))
     return "La nuova password deve essere diversa da quella attuale";
   if (error.includes("Too many requests"))
     return "Troppi tentativi, riprova tra qualche minuto";

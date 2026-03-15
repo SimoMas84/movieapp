@@ -1,3 +1,10 @@
+/* ============================================================
+   ROOT MIDDLEWARE
+   Runs on every request except static assets.
+   Delegates session refresh and route protection
+   to the Supabase middleware helper.
+   ============================================================ */
+
 import { updateSession } from "@/lib/supabase/middleware";
 import type { NextRequest } from "next/server";
 

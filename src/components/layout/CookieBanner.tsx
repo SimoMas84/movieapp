@@ -1,19 +1,19 @@
 "use client";
 
+/* ============================================================
+   COOKIE BANNER COMPONENT
+   GDPR-compliant cookie consent banner.
+   - Necessary: always active (Supabase Auth session)
+   - Analytics: optional (Vercel Analytics)
+   Consent stored in localStorage under STORAGE_KEY.
+   All styles are inline — required for createPortal to
+   avoid Tailwind class resolution issues outside React tree.
+   ============================================================ */
+
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
-
-/* =============================================
-   COOKIE BANNER COMPONENT
-   GDPR-compliant cookie consent banner.
-   - Necessary cookies: always active (Supabase Auth session)
-   - Analytics cookies: optional (Vercel Analytics)
-   Consent is stored in localStorage.
-   Rendered via createPortal with inline styles
-   to avoid z-index and Tailwind portal issues.
-   ============================================= */
 
 const STORAGE_KEY = "movieapp_cookie_consent";
 
@@ -30,7 +30,6 @@ export default function CookieBanner() {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  /* ── Mount check — portal requires client ── */
   useEffect(() => {
     setMounted(true);
     setIsMobile(window.innerWidth < 768);
@@ -39,7 +38,6 @@ export default function CookieBanner() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  /* ── Check if user already decided ── */
   useEffect(() => {
     if (!mounted) return;
     try {
@@ -55,14 +53,13 @@ export default function CookieBanner() {
     }
   }, [mounted]);
 
-  /* ── Save consent and hide banner ── */
   const saveConsent = (analytics: boolean) => {
     const consent: ConsentState = { necessary: true, analytics, decided: true };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
     setVisible(false);
-    if (typeof window !== "undefined") {
-      (window as any).__VERCEL_ANALYTICS_ENABLED__ = analytics;
-    }
+    (
+      window as Window & { __VERCEL_ANALYTICS_ENABLED__?: boolean }
+    ).__VERCEL_ANALYTICS_ENABLED__ = analytics;
   };
 
   const handleAcceptAll = () => saveConsent(true);
@@ -75,7 +72,7 @@ export default function CookieBanner() {
     <AnimatePresence>
       {visible && (
         <>
-          {/* ── Backdrop — mobile only ── */}
+          {/* Backdrop — mobile only */}
           {isMobile && (
             <motion.div
               style={{
@@ -91,7 +88,7 @@ export default function CookieBanner() {
             />
           )}
 
-          {/* ── Banner ── */}
+          {/* Banner */}
           <motion.div
             style={{
               position: "fixed",
@@ -112,32 +109,23 @@ export default function CookieBanner() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            {/* ── Header ── */}
+            {/* Header */}
             <div
               style={{
                 padding: "20px 20px 16px",
                 borderBottom: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <div
+              <h3
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "8px",
+                  color: "#F0F4FF",
+                  fontWeight: 500,
+                  fontSize: "14px",
+                  margin: "0 0 8px",
                 }}
               >
-                <h3
-                  style={{
-                    color: "#F0F4FF",
-                    fontWeight: 500,
-                    fontSize: "14px",
-                    margin: 0,
-                  }}
-                >
-                  Preferenze cookie
-                </h3>
-              </div>
+                Preferenze cookie
+              </h3>
               <p
                 style={{
                   color: "#8A9AB5",
@@ -155,7 +143,7 @@ export default function CookieBanner() {
               </p>
             </div>
 
-            {/* ── Details (expandable) ── */}
+            {/* Details (expandable) */}
             <AnimatePresence>
               {showDetails && (
                 <motion.div
@@ -174,7 +162,7 @@ export default function CookieBanner() {
                       gap: "12px",
                     }}
                   >
-                    {/* Necessary */}
+                    {/* Necessary — always on */}
                     <div
                       style={{
                         display: "flex",
@@ -204,7 +192,6 @@ export default function CookieBanner() {
                           Sessione di autenticazione (Supabase). Sempre attivi.
                         </p>
                       </div>
-                      {/* Toggle — always on */}
                       <div style={{ flexShrink: 0, marginTop: "2px" }}>
                         <div
                           style={{
@@ -231,7 +218,7 @@ export default function CookieBanner() {
                       </div>
                     </div>
 
-                    {/* Analytics */}
+                    {/* Analytics — optional */}
                     <div
                       style={{
                         display: "flex",
@@ -262,7 +249,6 @@ export default function CookieBanner() {
                           Opzionali.
                         </p>
                       </div>
-                      {/* Toggle — switchable */}
                       <button
                         onClick={() => setAnalyticsEnabled((prev) => !prev)}
                         style={{
@@ -308,7 +294,7 @@ export default function CookieBanner() {
               )}
             </AnimatePresence>
 
-            {/* ── Actions ── */}
+            {/* Actions */}
             <div
               style={{
                 padding: "16px 20px",
@@ -317,7 +303,6 @@ export default function CookieBanner() {
                 gap: "8px",
               }}
             >
-              {/* Accept all */}
               <button
                 onClick={handleAcceptAll}
                 style={{
@@ -330,7 +315,6 @@ export default function CookieBanner() {
                   fontWeight: 500,
                   border: "none",
                   cursor: "pointer",
-                  transition: "background-color 0.2s",
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.backgroundColor = "#A8E000")
@@ -354,7 +338,6 @@ export default function CookieBanner() {
                     fontSize: "12px",
                     border: "1px solid rgba(255,255,255,0.08)",
                     cursor: "pointer",
-                    transition: "all 0.2s",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = "#BBFF00";
@@ -381,7 +364,6 @@ export default function CookieBanner() {
                       fontSize: "12px",
                       border: "1px solid rgba(255,255,255,0.08)",
                       cursor: "pointer",
-                      transition: "all 0.2s",
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = "#BBFF00";
@@ -406,7 +388,6 @@ export default function CookieBanner() {
                       fontSize: "12px",
                       border: "1px solid rgba(255,255,255,0.08)",
                       cursor: "pointer",
-                      transition: "all 0.2s",
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = "#BBFF00";

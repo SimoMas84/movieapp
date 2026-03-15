@@ -49,22 +49,6 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
       setSelectedMovie(movie);
     }
   }, []);
-  // /* ── Handlers ── */
-  // const handleSelect = useCallback(
-  //   async (movie: Movie) => {
-  //     if (isDragging) return;
-  //     try {
-  //       const res = await fetch(
-  //         `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
-  //       );
-  //       const { trailerKey } = await res.json();
-  //       setSelectedMovie({ ...movie, trailerKey });
-  //     } catch {
-  //       setSelectedMovie(movie);
-  //     }
-  //   },
-  //   [isDragging],
-  // );
 
   const handleSliderMove = useCallback(() => {
     setIsDragging(true);

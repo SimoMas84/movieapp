@@ -1,5 +1,10 @@
 "use client";
 
+/* ============================================================
+   ACTOR CARD COMPONENT
+   Portrait card for cast members. Navigates to person page on click.
+   ============================================================ */
+
 import Image from "next/image";
 import { tmdbImage } from "@/lib/tmdb";
 import { useRouter } from "next/navigation";
@@ -17,15 +22,15 @@ export default function ActorCard({
   name,
   character,
   profilePath,
-  index,
 }: ActorCardProps) {
   const router = useRouter();
+
   return (
     <div
       className="relative flex-shrink-0 w-32 md:w-40 cursor-pointer"
       onClick={() => router.push(`/person/${id}`)}
     >
-      {/* ── Portrait ── */}
+      {/* Portrait */}
       <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-surface-2 border border-transparent hover:border-accent transition-all duration-300">
         {profilePath ? (
           <Image
@@ -43,12 +48,14 @@ export default function ActorCard({
           </div>
         )}
 
-        {/* ── Bottom overlay ── */}
+        {/* Bottom overlay */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-bg-primary/90 to-transparent p-2 pt-8">
-          <p className="text-text-primary text-xs font-medium leading-tight truncate">
+          <p className="text-accent text-xs font-medium leading-tight truncate">
             {name}
           </p>
-          <p className="text-text-muted text-xs truncate mt-0.5">{character}</p>
+          <p className="text-text-primary text-xs truncate mt-0.5">
+            {character}
+          </p>
         </div>
       </div>
     </div>

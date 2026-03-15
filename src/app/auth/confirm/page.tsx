@@ -1,11 +1,11 @@
-import Link from "next/link";
-import { ArrowLeft, Mail } from "lucide-react";
-
 /* ============================================================
    CONFIRM PAGE
    Shown after successful registration.
    Instructs the user to check their email for confirmation.
    ============================================================ */
+
+import Link from "next/link";
+import { Mail } from "lucide-react";
 
 export default function ConfirmPage() {
   return (
@@ -25,7 +25,6 @@ export default function ConfirmPage() {
 
         {/* Card */}
         <div className="bg-surface-1 border border-white/[0.08] rounded-2xl p-8 shadow-2xl text-center">
-          {/* Icon */}
           <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
             <Mail size={28} className="text-accent" />
           </div>

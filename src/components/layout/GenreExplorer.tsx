@@ -1,5 +1,11 @@
 "use client";
 
+/* ============================================================
+   GENRE EXPLORER COMPONENT
+   Allows filtering movies or series by genre with infinite
+   scroll and sort options.
+   ============================================================ */
+
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toMovie } from "@/lib/utils";
 import { TMDBMovie } from "@/lib/tmdb";
@@ -7,9 +13,6 @@ import ExploreCard from "@/components/cards/ExploreCard";
 import MovieModal from "@/components/ui/MovieModal";
 import { Movie } from "@/types/movie";
 
-/* =============================================
-   SORT OPTIONS
-   ============================================= */
 const SORT_OPTIONS = [
   { label: "Valutazione", value: "vote_average.desc" },
   { label: "Popolarità", value: "popularity.desc" },
@@ -18,17 +21,12 @@ const SORT_OPTIONS = [
 
 type SortOption = (typeof SORT_OPTIONS)[number]["value"];
 
-/* =============================================
-   PROPS INTERFACE
-   ============================================= */
 interface GenreExplorerProps {
   genres: Record<number, string>;
   mediaType?: "movie" | "tv";
 }
 
-/* =============================================
-   SKELETON GRID
-   ============================================= */
+/* ── Skeleton grid shown while loading ── */
 function SkeletonGrid() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
@@ -42,9 +40,7 @@ function SkeletonGrid() {
   );
 }
 
-/* =============================================
-   MOVIE GRID
-   ============================================= */
+/* ── Paginated movie grid with infinite scroll ── */
 function MovieGrid({
   genreIds,
   sortBy,
@@ -61,7 +57,6 @@ function MovieGrid({
   const [movies, setMovies] = useState<TMDBMovie[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const loaderRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
 
@@ -71,9 +66,8 @@ function MovieGrid({
       loadingRef.current = true;
       setLoading(true);
       try {
-        const genreParam = genreIds.join(",");
         const res = await fetch(
-          `/api/discover?genre=${genreParam}&page=${pageNum}&sort=${sortBy}&type=${mediaType}`,
+          `/api/discover?genre=${genreIds.join(",")}&page=${pageNum}&sort=${sortBy}&type=${mediaType}`,
         );
         const data = await res.json();
         setMovies((prev) =>
@@ -95,27 +89,22 @@ function MovieGrid({
     fetchPage(1);
   }, [fetchPage]);
 
-  /* ── Infinite scroll observer — starts after first page loaded ── */
-
+  /* ── Infinite scroll ── */
   useEffect(() => {
     if (movies.length === 0) return;
-
     const handleScroll = () => {
       if (loadingRef.current || !hasMore) return;
-
-      const scrollBottom = window.innerHeight + window.scrollY;
-      const pageBottom = document.documentElement.scrollHeight - 300;
-
-      if (scrollBottom >= pageBottom) {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 300
+      ) {
         fetchPage(pageRef.current + 1);
       }
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [hasMore, fetchPage, movies.length]);
 
-  /* ── Convert TMDBMovie to Movie ── */
   const converted = movies.map((m) => toMovie(m, genres));
 
   if (!loading && movies.length === 0) {
@@ -140,16 +129,13 @@ function MovieGrid({
           />
         ))}
       </div>
-
       {loading && <SkeletonGrid />}
-      <div ref={loaderRef} className="h-10 mt-4" />
+      <div className="h-10 mt-4" />
     </>
   );
 }
 
-/* =============================================
-   GENRE EXPLORER COMPONENT
-   ============================================= */
+/* ── Main component ── */
 export default function GenreExplorer({
   genres,
   mediaType = "movie",
@@ -162,7 +148,6 @@ export default function GenreExplorer({
     .map(([id, name]) => ({ id: Number(id), name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  /* ── Handle card click ── */
   const handleSelect = useCallback(async (movie: Movie) => {
     const type = movie.type === "serie" ? "tv" : "movie";
     try {
@@ -184,21 +169,6 @@ export default function GenreExplorer({
       setSelectedMovie(movie);
     }
   }, []);
-  // const handleSelect = useCallback(async (movie: Movie) => {
-  //   try {
-  //     const res = await fetch(
-  //       `/api/trailer?id=${movie.id}&type=${movie.type === "serie" ? "tv" : "movie"}`,
-  //     );
-  //     const { trailerKey } = await res.json();
-  //     setSelectedMovie({ ...movie, trailerKey });
-  //   } catch {
-  //     setSelectedMovie(movie);
-  //   }
-  // }, []);
-
-  const handleClose = useCallback(() => {
-    setSelectedMovie(null);
-  }, []);
 
   const handleGenreToggle = useCallback((genreId: number) => {
     setActiveGenres((prev) =>
@@ -219,7 +189,7 @@ export default function GenreExplorer({
   return (
     <>
       <div>
-        {/* ── Genre chips ── */}
+        {/* Genre chips */}
         <div className="flex gap-2 flex-wrap mb-6">
           {genreList.map((g) => (
             <button
@@ -236,7 +206,7 @@ export default function GenreExplorer({
           ))}
         </div>
 
-        {/* ── Active filters bar ── */}
+        {/* Sort + reset — shown when genres are active */}
         {hasFilters && (
           <div className="flex flex-col gap-2 mb-8">
             <span className="text-text-muted text-xs">Ordina per:</span>
@@ -254,7 +224,6 @@ export default function GenreExplorer({
                   {opt.label}
                 </button>
               ))}
-
               <button
                 onClick={handleReset}
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-sm border border-red-500/30 border-l-2 border-l-red-500 text-red-400 hover:bg-red-500/10 transition-all duration-200"
@@ -265,7 +234,7 @@ export default function GenreExplorer({
           </div>
         )}
 
-        {/* ── Empty state ── */}
+        {/* Empty state */}
         {!hasFilters && (
           <div className="text-center py-16">
             <p className="text-text-muted text-sm">
@@ -275,7 +244,7 @@ export default function GenreExplorer({
           </div>
         )}
 
-        {/* ── Movie grid ── */}
+        {/* Movie grid */}
         {hasFilters && (
           <MovieGrid
             key={gridKey}
@@ -288,8 +257,10 @@ export default function GenreExplorer({
         )}
       </div>
 
-      {/* ── Movie modal ── */}
-      <MovieModal movie={selectedMovie} onClose={handleClose} />
+      <MovieModal
+        movie={selectedMovie}
+        onClose={() => setSelectedMovie(null)}
+      />
     </>
   );
 }

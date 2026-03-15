@@ -1,34 +1,28 @@
-/* =============================================
+/* ============================================================
    TMDB API SERVICE
    Centralized layer for all TMDB API calls.
    Uses server-side API key for security.
-   Results are cached for 1 hour by default.
-   ============================================= */
+   Results are cached for 1 hour by default (next.revalidate).
+   ============================================================ */
 
 const BASE_URL = process.env.NEXT_PUBLIC_TMDB_BASE_URL!;
-const API_KEY = process.env.TMDB_API_KEY!;
+const API_KEY  = process.env.TMDB_API_KEY!;
 const IMAGE_BASE = process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE!;
 
-/* =============================================
+/* ============================================================
    IMAGE HELPERS
-   Builds full image URLs from TMDB path strings.
-   ============================================= */
+   ============================================================ */
 export const tmdbImage = {
-  poster: (path: string | null) =>
-    path ? `${IMAGE_BASE}/w500${path}` : null,
-  posterLarge: (path: string | null) =>
-    path ? `${IMAGE_BASE}/w780${path}` : null,
-  backdrop: (path: string | null) =>
-    path ? `${IMAGE_BASE}/w1280${path}` : null,
-  backdropFull: (path: string | null) =>
-    path ? `${IMAGE_BASE}/original${path}` : null,
-  profile: (path: string | null) =>
-    path ? `${IMAGE_BASE}/w185${path}` : null,
+  poster:       (path: string | null) => path ? `${IMAGE_BASE}/w500${path}`     : null,
+  posterLarge:  (path: string | null) => path ? `${IMAGE_BASE}/w780${path}`     : null,
+  backdrop:     (path: string | null) => path ? `${IMAGE_BASE}/w1280${path}`    : null,
+  backdropFull: (path: string | null) => path ? `${IMAGE_BASE}/original${path}` : null,
+  profile:      (path: string | null) => path ? `${IMAGE_BASE}/w185${path}`     : null,
 };
 
-/* =============================================
+/* ============================================================
    TYPES
-   ============================================= */
+   ============================================================ */
 
 export interface TMDBMovie {
   id: number;
@@ -73,17 +67,8 @@ export interface TMDBPerson {
 }
 
 export interface TMDBPersonCredits {
-  cast: (TMDBMovie & {
-    character?: string;
-    release_date?: string;
-    first_air_date?: string;
-  })[];
-  crew: (TMDBMovie & {
-    job?: string;
-    department?: string;
-    release_date?: string;
-    first_air_date?: string;
-  })[];
+  cast: (TMDBMovie & { character?: string })[];
+  crew: (TMDBMovie & { job?: string; department?: string })[];
 }
 
 export interface TMDBCredits {
@@ -109,8 +94,8 @@ export interface TMDBVideo {
   site: string;
   type: string;
   official: boolean;
-  iso_639_1: string;  // language code — e.g. "it", "en"
-  iso_3166_1: string; // country code — e.g. "IT", "US"
+  iso_639_1: string;  /* language code — e.g. "it", "en" */
+  iso_3166_1: string; /* country code  — e.g. "IT", "US" */
 }
 
 export interface TMDBWatchProvider {
@@ -126,11 +111,9 @@ export interface TMDBPageResult<T> {
   total_results: number;
 }
 
-/* =============================================
+/* ============================================================
    BASE FETCH
-   Reusable authenticated fetch with error
-   handling. Defaults to Italian language.
-   ============================================= */
+   ============================================================ */
 async function tmdbFetch<T>(
   endpoint: string,
   params?: Record<string, string>
@@ -141,25 +124,19 @@ async function tmdbFetch<T>(
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
-
-  const res = await fetch(url.toString(), {
-    next: { revalidate: 3600 },
-  });
-
+  const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
   if (!res.ok) throw new Error(`TMDB error: ${res.status} ${endpoint}`);
   return res.json();
 }
 
-/* =============================================
-   UTILITIES
-   ============================================= */
+/* ============================================================
+   INTERNAL UTILITIES
+   ============================================================ */
 
-/* ── Remove items without a poster — keeps galleries visually consistent ── */
 function withPoster<T extends { poster_path: string | null }>(items: T[]): T[] {
   return items.filter((m) => m.poster_path);
 }
 
-/* ── Date helpers for discover filters ── */
 function getToday(): string {
   return new Date().toISOString().split("T")[0];
 }
@@ -184,99 +161,79 @@ function getYearsAgo(years: number): string {
   return `${new Date().getFullYear() - years}-01-01`;
 }
 
-/* =============================================
-   GENRE FUNCTIONS
-   ============================================= */
+/* ── Prefer Italian trailer, fallback to English ── */
+function pickBestTrailer(videos: TMDBVideo[]): TMDBVideo[] {
+  const yt = videos.filter((v) => v.site === "YouTube");
+  const itOfficial = yt.find((v) => v.type === "Trailer" && v.official && v.iso_639_1 === "it");
+  const itTrailer  = yt.find((v) => v.type === "Trailer" && v.iso_639_1 === "it");
+  const enOfficial = yt.find((v) => v.type === "Trailer" && v.official && v.iso_639_1 === "en");
+  const anyTrailer = yt.find((v) => v.type === "Trailer");
+  return [itOfficial ?? itTrailer ?? enOfficial ?? anyTrailer].filter(Boolean) as TMDBVideo[];
+}
 
-/* ── All genres — merged from movies and series ── */
+/* ============================================================
+   GENRE FUNCTIONS
+   ============================================================ */
+
 export async function getGenres(): Promise<Record<number, string>> {
   const [movies, series] = await Promise.all([
     tmdbFetch<{ genres: { id: number; name: string }[] }>("/genre/movie/list"),
     tmdbFetch<{ genres: { id: number; name: string }[] }>("/genre/tv/list"),
   ]);
-  const all = [...movies.genres, ...series.genres];
-  return Object.fromEntries(all.map((g) => [g.id, g.name]));
+  return Object.fromEntries(
+    [...movies.genres, ...series.genres].map((g) => [g.id, g.name])
+  );
 }
 
-/* ── Movie genres only ── */
 export async function getMovieGenres(): Promise<Record<number, string>> {
-  const data = await tmdbFetch<{ genres: { id: number; name: string }[] }>(
-    "/genre/movie/list"
-  );
+  const data = await tmdbFetch<{ genres: { id: number; name: string }[] }>("/genre/movie/list");
   return Object.fromEntries(data.genres.map((g) => [g.id, g.name]));
 }
 
-/* ── Series genres only ── */
 export async function getSeriesGenres(): Promise<Record<number, string>> {
-  const data = await tmdbFetch<{ genres: { id: number; name: string }[] }>(
-    "/genre/tv/list"
-  );
+  const data = await tmdbFetch<{ genres: { id: number; name: string }[] }>("/genre/tv/list");
   return Object.fromEntries(data.genres.map((g) => [g.id, g.name]));
 }
 
-/* =============================================
-   MOVIE FUNCTIONS
-   ============================================= */
+/* ============================================================
+   MOVIE & SERIES FUNCTIONS
+   ============================================================ */
 
-/* ── Trending movies and series this week — rating 7+ ── */
 export async function getTrending(): Promise<TMDBMovie[]> {
   const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/trending/all/week");
   return withPoster(data.results.filter((m) => m.vote_average >= 7)).slice(0, 20);
 }
 
-/* ── Movie detail by ID ── */
 export async function getMovieDetail(id: number): Promise<TMDBMovie> {
   return tmdbFetch<TMDBMovie>(`/movie/${id}`);
 }
 
-/* ── Series detail by ID ── */
 export async function getSeriesDetail(id: number): Promise<TMDBMovie> {
   return tmdbFetch<TMDBMovie>(`/tv/${id}`);
 }
 
-/* ── Movie credits (cast and crew) ── */
 export async function getMovieCredits(id: number): Promise<TMDBCredits> {
   return tmdbFetch<TMDBCredits>(`/movie/${id}/credits`);
 }
 
-/* ── Series credits (cast and crew) ── */
 export async function getSeriesCredits(id: number): Promise<TMDBCredits> {
   return tmdbFetch<TMDBCredits>(`/tv/${id}/credits`);
 }
 
-/* ── Movie videos — prefer Italian trailer, fallback to English ── */
 export async function getMovieVideos(id: number): Promise<TMDBVideo[]> {
-  const data = await tmdbFetch<{ results: TMDBVideo[] }>(
-    `/movie/${id}/videos`,
-    { include_video_language: "it,en" }
-  );
-  const videos = data.results.filter((v) => v.site === "YouTube");
-
-  const itOfficial = videos.find((v) => v.type === "Trailer" && v.official && v.iso_639_1 === "it");
-  const itTrailer  = videos.find((v) => v.type === "Trailer" && v.iso_639_1 === "it");
-  const enOfficial = videos.find((v) => v.type === "Trailer" && v.official && v.iso_639_1 === "en");
-  const anyTrailer = videos.find((v) => v.type === "Trailer");
-
-  return [itOfficial ?? itTrailer ?? enOfficial ?? anyTrailer].filter(Boolean) as TMDBVideo[];
+  const data = await tmdbFetch<{ results: TMDBVideo[] }>(`/movie/${id}/videos`, {
+    include_video_language: "it,en",
+  });
+  return pickBestTrailer(data.results);
 }
 
-/* ── Series videos — prefer Italian trailer, fallback to English ── */
 export async function getSeriesVideos(id: number): Promise<TMDBVideo[]> {
-  const data = await tmdbFetch<{ results: TMDBVideo[] }>(
-    `/tv/${id}/videos`,
-    { include_video_language: "it,en" }
-  );
-  const videos = data.results.filter((v) => v.site === "YouTube");
-
-  const itOfficial = videos.find((v) => v.type === "Trailer" && v.official && v.iso_639_1 === "it");
-  const itTrailer  = videos.find((v) => v.type === "Trailer" && v.iso_639_1 === "it");
-  const enOfficial = videos.find((v) => v.type === "Trailer" && v.official && v.iso_639_1 === "en");
-  const anyTrailer = videos.find((v) => v.type === "Trailer");
-
-  return [itOfficial ?? itTrailer ?? enOfficial ?? anyTrailer].filter(Boolean) as TMDBVideo[];
+  const data = await tmdbFetch<{ results: TMDBVideo[] }>(`/tv/${id}/videos`, {
+    include_video_language: "it,en",
+  });
+  return pickBestTrailer(data.results);
 }
 
-/* ── Watch providers by country — Italy only ── */
 export async function getWatchProviders(
   id: number,
   type: "movie" | "tv"
@@ -287,19 +244,16 @@ export async function getWatchProviders(
   return data.results?.IT?.flatrate ?? [];
 }
 
-/* ── Similar movies ── */
 export async function getRelatedMovies(id: number): Promise<TMDBMovie[]> {
-  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>(`/movie/${id}/similar`);
+  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>(`/movie/${id}/recommendations`);
   return withPoster(data.results).slice(0, 20);
 }
 
-/* ── Similar series ── */
 export async function getRelatedSeries(id: number): Promise<TMDBMovie[]> {
-  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>(`/tv/${id}/similar`);
+  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>(`/tv/${id}/recommendations`);
   return withPoster(data.results).slice(0, 20);
 }
 
-/* ── Recent releases — last 2 months up to today ── */
 export async function getRecentReleases(): Promise<TMDBMovie[]> {
   const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/movie", {
     "release_date.gte": getMonthsAgo(2),
@@ -308,12 +262,11 @@ export async function getRecentReleases(): Promise<TMDBMovie[]> {
     sort_by: "release_date.desc",
     region: "IT",
     "vote_count.gte": "5",
-    "with_original_language": "it|en|fr|de|es",
+    with_original_language: "it|en|fr|de|es",
   });
   return withPoster(data.results);
 }
 
-/* ── Upcoming theatrical releases — from tomorrow to end of year ── */
 export async function getUpcomingTheatrical(): Promise<TMDBMovie[]> {
   const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/movie", {
     "release_date.gte": getTomorrow(),
@@ -321,12 +274,11 @@ export async function getUpcomingTheatrical(): Promise<TMDBMovie[]> {
     with_release_type: "3|2",
     sort_by: "release_date.asc",
     region: "IT",
-    "with_original_language": "it|en|fr|de|es",
+    with_original_language: "it|en|fr|de|es",
   });
   return withPoster(data.results);
 }
 
-/* ── Upcoming streaming releases — from tomorrow to end of year ── */
 export async function getUpcomingStreaming(): Promise<TMDBMovie[]> {
   const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/movie", {
     "release_date.gte": getTomorrow(),
@@ -334,12 +286,11 @@ export async function getUpcomingStreaming(): Promise<TMDBMovie[]> {
     with_release_type: "4|5|6",
     sort_by: "release_date.asc",
     region: "IT",
-    "with_original_language": "it|en|fr|de|es",
+    with_original_language: "it|en|fr|de|es",
   });
   return withPoster(data.results);
 }
 
-/* ── Upcoming movies and series — from tomorrow to end of year ── */
 export async function getUpcomingAll(): Promise<TMDBMovie[]> {
   const [movies, series] = await Promise.all([
     tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/movie", {
@@ -348,13 +299,13 @@ export async function getUpcomingAll(): Promise<TMDBMovie[]> {
       with_release_type: "3|2",
       sort_by: "release_date.asc",
       region: "IT",
-      "with_original_language": "it|en|fr|de|es",
+      with_original_language: "it|en|fr|de|es",
     }),
     tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/tv", {
       "first_air_date.gte": getTomorrow(),
       "first_air_date.lte": getEndOfYear(),
       sort_by: "first_air_date.asc",
-      "with_original_language": "it|en|fr|de|es",
+      with_original_language: "it|en|fr|de|es",
     }),
   ]);
 
@@ -363,15 +314,14 @@ export async function getUpcomingAll(): Promise<TMDBMovie[]> {
     ...series.results.map((m) => ({ ...m, media_type: "tv" as const })),
   ]
     .filter((m) => m.poster_path)
-    .sort((a, b) => {
-      const dateA = a.release_date ?? a.first_air_date ?? "";
-      const dateB = b.release_date ?? b.first_air_date ?? "";
-      return dateA.localeCompare(dateB);
-    })
+    .sort((a, b) =>
+      (a.release_date ?? a.first_air_date ?? "").localeCompare(
+        b.release_date ?? b.first_air_date ?? ""
+      )
+    )
     .slice(0, 20);
 }
 
-/* ── Latest releases — movies and series up to today ── */
 export async function getLatestAll(): Promise<TMDBMovie[]> {
   const [movies, series] = await Promise.all([
     tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/movie", {
@@ -381,14 +331,14 @@ export async function getLatestAll(): Promise<TMDBMovie[]> {
       sort_by: "release_date.desc",
       region: "IT",
       "vote_count.gte": "10",
-      "with_original_language": "it|en|fr|de|es",
+      with_original_language: "it|en|fr|de|es",
     }),
     tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/tv", {
       "first_air_date.gte": getMonthsAgo(2),
       "first_air_date.lte": getToday(),
       sort_by: "first_air_date.desc",
       "vote_count.gte": "10",
-      "with_original_language": "it|en|fr|de|es",
+      with_original_language: "it|en|fr|de|es",
     }),
   ]);
 
@@ -397,15 +347,14 @@ export async function getLatestAll(): Promise<TMDBMovie[]> {
     ...series.results.map((m) => ({ ...m, media_type: "tv" as const })),
   ]
     .filter((m) => m.poster_path)
-    .sort((a, b) => {
-      const dateA = a.release_date ?? a.first_air_date ?? "";
-      const dateB = b.release_date ?? b.first_air_date ?? "";
-      return dateB.localeCompare(dateA);
-    })
+    .sort((a, b) =>
+      (b.release_date ?? b.first_air_date ?? "").localeCompare(
+        a.release_date ?? a.first_air_date ?? ""
+      )
+    )
     .slice(0, 20);
 }
 
-/* ── Popular movies — random page, no cache, rating 7+, 500+ votes, last 30 years ── */
 export async function getPopularMovies(): Promise<TMDBMovie[]> {
   const randomPage = Math.floor(Math.random() * 20) + 1;
   const data = await fetch(
@@ -415,7 +364,6 @@ export async function getPopularMovies(): Promise<TMDBMovie[]> {
   return withPoster(data.results).slice(0, 20);
 }
 
-/* ── Popular series — random page, no cache, rating 7+, 500+ votes, last 30 years ── */
 export async function getPopularSeries(): Promise<TMDBMovie[]> {
   const randomPage = Math.floor(Math.random() * 20) + 1;
   const data = await fetch(
@@ -425,59 +373,48 @@ export async function getPopularSeries(): Promise<TMDBMovie[]> {
   return withPoster(data.results).slice(0, 20);
 }
 
-/* ── Upcoming series ── */
 export async function getUpcomingSeries(): Promise<TMDBMovie[]> {
   const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/tv", {
     "first_air_date.gte": getTomorrow(),
     "first_air_date.lte": getEndOfYear(),
     sort_by: "first_air_date.asc",
-    "with_original_language": "it|en|fr|de|es",
+    with_original_language: "it|en|fr|de|es",
   });
   return withPoster(data.results);
 }
 
-/* ── Recent series releases — last 2 months ── */
 export async function getRecentSeriesReleases(): Promise<TMDBMovie[]> {
   const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/discover/tv", {
     "first_air_date.gte": getMonthsAgo(2),
     "first_air_date.lte": getToday(),
     sort_by: "first_air_date.desc",
     "vote_count.gte": "5",
-    "with_original_language": "it|en|fr|de|es",
+    with_original_language: "it|en|fr|de|es",
   });
   return withPoster(data.results);
 }
 
-/* ── Discover by genre — AND logic with comma-separated IDs, paginated ── */
 export async function discoverByGenre(
   genreId: string,
   page: number = 1,
   sortBy: string = "vote_average.desc",
   mediaType: "movie" | "tv" = "movie"
 ): Promise<TMDBPageResult<TMDBMovie>> {
-  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>(
-    `/discover/${mediaType}`,
-    {
-      with_genres: genreId,
-      sort_by: sortBy,
-      "vote_count.gte": "200",
-      page: String(page),
-    }
-  );
-  return {
-    ...data,
-    results: withPoster(data.results),
-  };
+  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>(`/discover/${mediaType}`, {
+    with_genres: genreId,
+    sort_by: sortBy,
+    "vote_count.gte": "200",
+    page: String(page),
+  });
+  return { ...data, results: withPoster(data.results) };
 }
-/* ── Fetch multiple movies/series by ID in parallel ── */
+
 export async function getItemsByIds(
   items: { tmdb_id: number; media_type: "movie" | "tv" }[]
 ): Promise<TMDBMovie[]> {
   const results = await Promise.allSettled(
     items.map(({ tmdb_id, media_type }) =>
-      media_type === "movie"
-        ? getMovieDetail(tmdb_id)
-        : getSeriesDetail(tmdb_id)
+      media_type === "movie" ? getMovieDetail(tmdb_id) : getSeriesDetail(tmdb_id)
     )
   );
   return results
@@ -485,37 +422,28 @@ export async function getItemsByIds(
     .map((r, i) => ({ ...r.value, media_type: items[i].media_type }));
 }
 
-/* =============================================
+/* ============================================================
    SEARCH FUNCTIONS
-   ============================================= */
+   ============================================================ */
 
-/* ── Search movies and series ── */
 export async function searchMulti(query: string): Promise<TMDBMovie[]> {
-  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/search/multi", {
-    query,
-  });
+  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/search/multi", { query });
   return withPoster(
-    data.results.filter(
-      (r) => r.media_type === "movie" || r.media_type === "tv"
-    )
+    data.results.filter((r) => r.media_type === "movie" || r.media_type === "tv")
   );
 }
 
-/* ── Search people — returns actors and directors from multi search ── */
 export async function searchPeople(query: string): Promise<TMDBPerson[]> {
-  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/search/multi", {
-    query,
-  });
+  const data = await tmdbFetch<TMDBPageResult<TMDBMovie>>("/search/multi", { query });
   return data.results
     .filter((r) => r.media_type === "person" && r.profile_path)
     .map((r) => r as unknown as TMDBPerson);
 }
 
-/* =============================================
+/* ============================================================
    PERSON FUNCTIONS
-   ============================================= */
+   ============================================================ */
 
-/* ── Popular actors ── */
 export async function getPopularActors(): Promise<TMDBPerson[]> {
   const data = await tmdbFetch<TMDBPageResult<TMDBPerson>>("/person/popular", {
     page: "1",
@@ -526,7 +454,6 @@ export async function getPopularActors(): Promise<TMDBPerson[]> {
   );
 }
 
-/* ── Popular directors — fetch 5 pages to find enough directors ── */
 export async function getPopularDirectors(): Promise<TMDBPerson[]> {
   const pages = await Promise.all(
     [1, 2, 3, 4, 5].map((page) =>
@@ -536,27 +463,19 @@ export async function getPopularDirectors(): Promise<TMDBPerson[]> {
       })
     )
   );
-  const all = pages.flatMap((p) => p.results);
-  return all.filter(
-    (p) => p.known_for_department === "Directing" && p.profile_path
-  );
+  return pages
+    .flatMap((p) => p.results)
+    .filter((p) => p.known_for_department === "Directing" && p.profile_path);
 }
 
-/* ── Person detail by ID ── */
 export async function getPersonDetail(id: number): Promise<TMDBPerson> {
   return tmdbFetch<TMDBPerson>(`/person/${id}`, { language: "en-US" });
 }
 
-/* ── Person movie credits ── */
-export async function getPersonMovieCredits(
-  id: number
-): Promise<TMDBPersonCredits> {
+export async function getPersonMovieCredits(id: number): Promise<TMDBPersonCredits> {
   return tmdbFetch<TMDBPersonCredits>(`/person/${id}/movie_credits`);
 }
 
-/* ── Person TV credits ── */
-export async function getPersonTVCredits(
-  id: number
-): Promise<TMDBPersonCredits> {
+export async function getPersonTVCredits(id: number): Promise<TMDBPersonCredits> {
   return tmdbFetch<TMDBPersonCredits>(`/person/${id}/tv_credits`);
 }
