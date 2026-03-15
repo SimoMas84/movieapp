@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
-import SplashScreen from "@/components/layout/SplashScreen";
-import Footer from "@/components/layout/Footer";
-import CookieBanner from "@/components/layout/CookieBanner";
+import LayoutShell from "@/components/layout/LayoutShell";
+import NavbarWrapper from "@/components/layout/NavbarWrapper";
+import { ToastProvider } from "@/context/ToastContext";
+import { UserListsProvider } from "@/context/UserListsContext";
 
 /* =============================================
    FONT CONFIGURATION
@@ -61,28 +62,32 @@ export const metadata: Metadata = {
       "Scopri film e serie TV, leggi trame, guarda trailer, esplora cast e trovale in streaming.",
     images: ["/og-image.png"],
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
 };
 
 /* =============================================
    ROOT LAYOUT
+   Provider order (outer → inner):
+   ToastProvider → UserListsProvider
+   ToastProvider must be outer because
+   UserListsContext uses toast internally.
+   Both live here so Navbar/SearchBar can
+   access them too.
    ============================================= */
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="it" className={rubik.className}>
       <body className="antialiased">
-        <SplashScreen />
-        <Navbar />
-        <main className="relative z-10">{children}</main>
-        <Footer />
-        <CookieBanner />
+        <ToastProvider>
+          <UserListsProvider>
+            <NavbarWrapper>
+              <Navbar />
+            </NavbarWrapper>
+            <LayoutShell>{children}</LayoutShell>
+          </UserListsProvider>
+        </ToastProvider>
       </body>
     </html>
   );
