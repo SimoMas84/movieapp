@@ -75,12 +75,18 @@ export default function FloatingInput({
   const isPassword = type === "password";
   const inputType = isPassword ? (showPassword ? "text" : "password") : type;
 
-  /* ── Validate — only after first blur, not for showStrength fields ── */
-  const errors =
-    hasBlurred && !showStrength
-      ? rules.filter((r) => !r.test(value)).map((r) => r.message)
-      : [];
-  const isValid = hasBlurred && errors.length === 0 && value.length > 0;
+  /* ── Validate ──
+     All fields: turn green immediately when all rules pass.
+     Errors (red) only shown after first blur to avoid
+     aggressing the user while still typing.
+  ── */
+  const allRulesPassed = rules.length > 0 && rules.every((r) => r.test(value));
+
+  const errors = hasBlurred
+    ? rules.filter((r) => !r.test(value)).map((r) => r.message)
+    : [];
+
+  const isValid = allRulesPassed && value.length > 0;
   const hasError = errors.length > 0;
 
   /* ── Strength — always computed when showStrength ── */
@@ -251,7 +257,7 @@ export default function FloatingInput({
             className="text-xs font-medium"
             style={{ color: strength ? strength.color : "#8A9AB5" }}
           >
-            {strength ? strength.label : "-"}
+            {strength ? strength.label : "—"}
           </p>
 
           {/* Row 3 — requirements */}
