@@ -51,6 +51,7 @@ export async function register(
     password,
     options: {
       data: { full_name: name },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
     },
   });
 
@@ -186,4 +187,50 @@ export async function resetPassword(
 //   await supabase.auth.signOut();
 //   revalidatePath("/", "layout");
 //   redirect("/");
+// }
+
+// /* ── Forgot password ── */
+// /* Sends a password reset email via Supabase.
+//    On success redirects to confirm page.
+//    On error returns the error message. */
+// export async function forgotPassword(
+//   _prevState: ActionState,
+//   formData: FormData
+// ): Promise<ActionState> {
+//   const supabase = await createClient();
+
+//   const email = formData.get("email") as string;
+
+//   const { error } = await supabase.auth.resetPasswordForEmail(email, {
+//     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+//   });
+
+//   if (error) {
+//     return { error: error.message };
+//   }
+
+//   redirect("/auth/forgot-confirm");
+// }
+
+// /* ── Reset password ── */
+// /* Updates the user password after they arrive from
+//    the reset email link. Supabase handles the token
+//    via the URL hash — the SSR client picks it up
+//    automatically from the session cookie. */
+// export async function resetPassword(
+//   _prevState: ActionState,
+//   formData: FormData
+// ): Promise<ActionState> {
+//   const supabase = await createClient();
+
+//   const password = formData.get("password") as string;
+
+//   const { error } = await supabase.auth.updateUser({ password });
+
+//   if (error) {
+//     return { error: error.message };
+//   }
+
+//   revalidatePath("/", "layout");
+//   redirect("/auth/reset-confirm");
 // }
