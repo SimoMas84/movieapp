@@ -41,7 +41,7 @@ export async function generateMetadata({
     title,
     description,
     openGraph: {
-      title: `${title} | MovieApp`,
+      title: `${title}`,
       description,
       url: `https://www.movieapp.it/movie/${id}`,
       images: image
@@ -50,7 +50,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} | MovieApp`,
+      title: `${title}`,
       description,
       images: image ? [image] : [],
     },

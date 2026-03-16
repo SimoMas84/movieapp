@@ -27,7 +27,7 @@ export default function ShareButton({
 
   const handleShare = useCallback(async () => {
     const shareUrl = url ?? window.location.href;
-    const shareData = { title, text: description, url: shareUrl };
+    const shareData = { title, url: shareUrl };
 
     if (navigator.share) {
       try {
