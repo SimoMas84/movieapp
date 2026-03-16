@@ -29,7 +29,7 @@ export default async function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center text-2xl text-accent font-light tracking-widest"
+          className="flex items-center text-2xl text-accent font-light tracking-widest cursor-pointer"
         >
           <span className="hidden md:inline">Movie</span>
           <span className="hidden md:inline text-text-primary">App</span>

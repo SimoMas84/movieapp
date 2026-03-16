@@ -1,65 +1,30 @@
 "use client";
 
-import { useState, useCallback } from "react";
+/* ============================================================
+   HERO BANNER COMPONENT
+   Swiper coverflow carousel — mobile and desktop.
+   Opens MovieModal on slide tap.
+   ============================================================ */
+
+import { useCallback, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow, Autoplay, Pagination } from "swiper/modules";
 import HeroBannerSlide from "./HeroBannerSlide";
 import MovieModal from "@/components/ui/MovieModal";
 import { Movie } from "@/types/movie";
 
-/* =============================================
-   PROPS INTERFACE
-   ============================================= */
 interface HeroBannerProps {
   movies: Movie[];
 }
 
-/* =============================================
-   CONSTANTS
-   ============================================= */
 const AUTOPLAY_DELAY = 5000;
 
-/* =============================================
-   HERO BANNER COMPONENT
-   Swiper coverflow effect — mobile & desktop
-   Opens MovieModal on slide tap (not swipe)
-   ============================================= */
 export default function HeroBanner({ movies }: HeroBannerProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  const handleSelect = useCallback(async (movie: Movie) => {
-    const type = movie.type === "serie" ? "tv" : "movie";
-    try {
-      const [trailerRes, detailRes] = await Promise.all([
-        fetch(`/api/trailer?id=${movie.id}&type=${type}`),
-        fetch(`/api/detail?id=${movie.id}&type=${type}`),
-      ]);
-      const { trailerKey } = await trailerRes.json();
-      const { runtime, numberOfSeasons, numberOfEpisodes } =
-        await detailRes.json();
-      setSelectedMovie({
-        ...movie,
-        trailerKey,
-        runtime,
-        numberOfSeasons,
-        numberOfEpisodes,
-      });
-    } catch {
-      setSelectedMovie(movie);
-    }
-  }, []);
-
-  const handleSliderMove = useCallback(() => {
-    setIsDragging(true);
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    setTimeout(() => setIsDragging(false), 100);
-  }, []);
-
-  const handleClose = useCallback(() => {
-    setSelectedMovie(null);
+  /* ── Open modal immediately — extra data loads inside modal ── */
+  const handleSelect = useCallback((movie: Movie) => {
+    setSelectedMovie(movie);
   }, []);
 
   return (
@@ -76,11 +41,12 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
             768: { slidesPerView: 1.4 },
             1024: { slidesPerView: 1.6 },
           }}
+          speed={700}
           coverflowEffect={{
             rotate: 0,
             stretch: 0,
-            depth: 120,
-            modifier: 2.5,
+            depth: 90,
+            modifier: 1.8,
             slideShadows: false,
           }}
           autoplay={{
@@ -93,8 +59,6 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
             bulletClass: "swiper-bullet",
             bulletActiveClass: "swiper-bullet-active",
           }}
-          onSliderMove={handleSliderMove}
-          onTouchEnd={handleTouchEnd}
           className="w-full"
         >
           {movies.map((movie) => (
@@ -102,7 +66,6 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
               <div className="relative aspect-video">
                 <HeroBannerSlide
                   movie={movie}
-                  isActive={true}
                   onClick={() => handleSelect(movie)}
                 />
               </div>
@@ -111,8 +74,10 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
         </Swiper>
       </section>
 
-      {/* Movie modal */}
-      <MovieModal movie={selectedMovie} onClose={handleClose} />
+      <MovieModal
+        movie={selectedMovie}
+        onClose={() => setSelectedMovie(null)}
+      />
     </>
   );
 }

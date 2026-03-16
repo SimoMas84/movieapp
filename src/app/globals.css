@@ -1,8 +1,7 @@
-/* =============================================
-   IMPORT
-   ============================================= */
+/* ============================================================
+   IMPORTS
+   ============================================================ */
 @import "tailwindcss";
-/* Swiper */
 @import 'swiper/css';
 @import 'swiper/css/effect-coverflow';
 @import 'swiper/css/pagination';
@@ -10,32 +9,32 @@
 @import 'swiper/css/navigation';
 @import 'swiper/css/free-mode';
 
-/* =============================================
+/* ============================================================
    MOVIEAPP DESIGN SYSTEM — THEME VARIABLES
-   ============================================= */
+   ============================================================ */
 @theme {
-  /* Colors — Background */
-  --color-bg-primary: #070A10;
-  --color-bg-secondary: #0A1018;
-  --color-bg-tertiary: #0D1520;
+  /* Background */
+  --color-bg-primary:    #070A10;
+  --color-bg-secondary:  #0A1018;
+  --color-bg-tertiary:   #0D1520;
 
-  /* Colors — Surface */
+  /* Surface */
   --color-surface-1: #0D1520;
   --color-surface-2: #1A2535;
 
-  /* Colors — Text */
-  --color-text-primary: #F0F4FF;
+  /* Text */
+  --color-text-primary:   #F0F4FF;
   --color-text-secondary: #8A9AB5;
-  --color-text-muted: #3A4A60;
+  --color-text-muted:     #3A4A60;
 
-  /* Colors — Accent */
-  --color-accent: #BBFF00;
+  /* Accent */
+  --color-accent:      #BBFF00;
   --color-accent-hover: #AADD00;
-  --color-accent-glow: rgba(187, 255, 0, 0.25);
-  
-  /* Colors — States */
-  --color-heart: #FF4D6D;
-  --color-border: rgba(204, 255, 0, 0.1);
+  --color-accent-glow:  rgba(187, 255, 0, 0.25);
+
+  /* States */
+  --color-heart:         #FF4D6D;
+  --color-border:        rgba(204, 255, 0, 0.1);
   --color-border-subtle: rgba(255, 255, 255, 0.06);
 
   /* Border radius */
@@ -47,9 +46,9 @@
   --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* =============================================
+/* ============================================================
    BASE STYLES
-   ============================================= */
+   ============================================================ */
 html {
   scroll-behavior: smooth;
 }
@@ -64,25 +63,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* =============================================
+/* ============================================================
    SCROLLBAR
-   ============================================= */
-::-webkit-scrollbar {
-  width: 6px;
-}
+   ============================================================ */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-primary); }
+::-webkit-scrollbar-thumb { border-radius: 3px; background: var(--color-accent); }
 
-::-webkit-scrollbar-track {
-  background: var(--color-bg-primary);
-}
-
-::-webkit-scrollbar-thumb {
-  border-radius: 3px;
-  background: var(--color-accent);
-}
-
-/* =============================================
+/* ============================================================
    ANIMATED BACKGROUND GRADIENT
-   ============================================= */
+   ============================================================ */
 body::before {
   content: '';
   position: fixed;
@@ -103,21 +93,18 @@ body::before {
   100% { opacity: 0.8; }
 }
 
-/* =============================================
+/* ============================================================
    UTILITY — HIDE SCROLLBAR ON GALLERIES
-   ============================================= */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
+   ============================================================ */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* =============================================
+/* ============================================================
    SWIPER
-   ============================================= */
+   ============================================================ */
 .swiper-bullet {
   display: inline-block;
   width: 8px;
@@ -140,4 +127,8 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+a, button { 
+  cursor: pointer; 
 }

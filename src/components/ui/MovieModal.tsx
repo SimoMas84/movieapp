@@ -1,5 +1,11 @@
 "use client";
 
+/* ============================================================
+   MOVIE MODAL COMPONENT
+   Opens immediately with available card data.
+   Trailer and extra details load in background.
+   ============================================================ */
+
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
@@ -10,6 +16,7 @@ import { Movie } from "@/types/movie";
 import { formatRating } from "@/lib/utils";
 import { modalWrapper, modalBackdrop, modalPanel } from "@/lib/animations";
 import { useMovieActions } from "@/hooks/useMovieActions";
+import ShareButton from "@/components/ui/ShareButton";
 
 /* ── Format runtime minutes → "1h 45m" ── */
 function formatRuntime(minutes: number): string {
@@ -20,20 +27,12 @@ function formatRuntime(minutes: number): string {
   return `${h}h ${m}m`;
 }
 
-/* =============================================
-   PROPS INTERFACE
-   ============================================= */
 interface MovieModalProps {
   movie: Movie | null;
   onClose: () => void;
 }
 
-/* =============================================
-   INNER MODAL CONTENT
-   Separated so useMovieActions can receive a
-   non-null movie — hooks cannot be called
-   conditionally.
-   ============================================= */
+/* ── Inner modal content — separated so hooks are never called conditionally ── */
 function ModalContent({
   movie,
   onClose,
@@ -45,11 +44,45 @@ function ModalContent({
   const { isFavorite, isWatchlist, toggleFavorite, toggleWatchlist } =
     useMovieActions(movie);
 
+  /* ── Extra data loaded in background after modal opens ── */
+  const [trailerKey, setTrailerKey] = useState<string | null>(
+    movie.trailerKey ?? null,
+  );
+  const [runtime, setRuntime] = useState<number | undefined>(movie.runtime);
+  const [numberOfSeasons, setNumberOfSeasons] = useState<number | undefined>(
+    movie.numberOfSeasons,
+  );
+  const [trailerLoading, setTrailerLoading] = useState(!movie.trailerKey);
+
+  useEffect(() => {
+    const type = movie.type === "serie" ? "tv" : "movie";
+
+    const fetchExtra = async () => {
+      try {
+        const [trailerRes, detailRes] = await Promise.all([
+          fetch(`/api/trailer?id=${movie.id}&type=${type}`),
+          fetch(`/api/detail?id=${movie.id}&type=${type}`),
+        ]);
+        const { trailerKey: key } = await trailerRes.json();
+        const { runtime: rt, numberOfSeasons: ns } = await detailRes.json();
+        setTrailerKey(key ?? null);
+        setRuntime(rt);
+        setNumberOfSeasons(ns);
+      } catch {
+        /* keep whatever was already available */
+      } finally {
+        setTrailerLoading(false);
+      }
+    };
+
+    fetchExtra();
+  }, [movie.id, movie.type]);
+
   const handleGoToMovie = useCallback(() => {
     onClose();
-    const path =
-      movie.type === "serie" ? `/serie/${movie.id}` : `/movie/${movie.id}`;
-    router.push(path);
+    router.push(
+      movie.type === "serie" ? `/serie/${movie.id}` : `/movie/${movie.id}`,
+    );
   }, [movie, onClose, router]);
 
   return (
@@ -60,30 +93,44 @@ function ModalContent({
       animate="visible"
       exit="hidden"
     >
-      {/* ── Trailer ── */}
-      {movie.trailerKey ? (
-        <div className="relative w-full aspect-video">
+      {/* ── Trailer / backdrop ── */}
+      <div className="relative w-full aspect-video bg-surface-2">
+        {trailerLoading ? (
+          /* Shimmer while trailer loads */
+          <>
+            {movie.backdrop && (
+              <Image
+                src={`https://image.tmdb.org/t/p/w780${movie.backdrop}`}
+                alt={movie.title}
+                fill
+                className="object-cover opacity-40"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-surface-1 via-transparent to-transparent" />
+            <div className="absolute inset-0 animate-pulse bg-surface-2/40" />
+          </>
+        ) : trailerKey ? (
           <iframe
-            src={`https://www.youtube.com/embed/${movie.trailerKey}?autoplay=1&mute=0&controls=1&rel=0`}
+            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=0&controls=1&rel=0`}
             title={`Trailer — ${movie.title}`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="absolute inset-0 w-full h-full"
           />
-        </div>
-      ) : (
-        <div className="relative w-full aspect-video">
-          {movie.backdrop && (
-            <Image
-              src={`https://image.tmdb.org/t/p/w780${movie.backdrop}`}
-              alt={movie.title}
-              fill
-              className="object-cover"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-surface-1 via-transparent to-transparent" />
-        </div>
-      )}
+        ) : (
+          <>
+            {movie.backdrop && (
+              <Image
+                src={`https://image.tmdb.org/t/p/w780${movie.backdrop}`}
+                alt={movie.title}
+                fill
+                className="object-cover"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-surface-1 via-transparent to-transparent" />
+          </>
+        )}
+      </div>
 
       {/* ── Close button ── */}
       <button
@@ -96,12 +143,10 @@ function ModalContent({
 
       {/* ── Info ── */}
       <div className="px-5 pt-4 pb-6">
-        {/* Title */}
         <h2 className="text-xl font-light text-text-primary mb-1">
           {movie.title}
         </h2>
 
-        {/* Meta */}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span
             className={`text-xs font-medium ${movie.type === "serie" ? "text-blue-400" : "text-accent"}`}
@@ -109,30 +154,27 @@ function ModalContent({
             {movie.type === "serie" ? "Serie" : "Film"}
           </span>
 
-          {movie.type === "film" &&
-            movie.runtime !== undefined &&
-            movie.runtime > 0 && (
-              <>
-                <span className="text-text-muted text-xs">•</span>
-                <span className="text-text-secondary text-xs">
-                  {formatRuntime(movie.runtime)}
-                </span>
-              </>
-            )}
-
-          {movie.type === "serie" && movie.numberOfSeasons && (
+          {movie.type === "film" && runtime !== undefined && runtime > 0 && (
             <>
               <span className="text-text-muted text-xs">•</span>
               <span className="text-text-secondary text-xs">
-                {movie.numberOfSeasons}{" "}
-                {movie.numberOfSeasons === 1 ? "stagione" : "stagioni"}
+                {formatRuntime(runtime)}
+              </span>
+            </>
+          )}
+
+          {movie.type === "serie" && numberOfSeasons && (
+            <>
+              <span className="text-text-muted text-xs">•</span>
+              <span className="text-text-secondary text-xs">
+                {numberOfSeasons}{" "}
+                {numberOfSeasons === 1 ? "stagione" : "stagioni"}
               </span>
             </>
           )}
 
           <span className="text-text-muted text-xs">•</span>
           <span className="text-text-secondary text-xs">{movie.year}</span>
-
           <span className="text-text-muted text-xs">•</span>
           <span className="flex items-center gap-1 text-accent text-xs">
             <Star size={11} />
@@ -140,7 +182,6 @@ function ModalContent({
           </span>
         </div>
 
-        {/* Genre chips */}
         <div className="flex gap-1.5 flex-wrap mb-3">
           {movie.genre.map((g) => (
             <span
@@ -152,14 +193,11 @@ function ModalContent({
           ))}
         </div>
 
-        {/* Plot */}
         <p className="text-text-secondary text-sm line-clamp-3 mb-4">
           {movie.plot}
         </p>
 
-        {/* Actions */}
         <div className="flex items-center gap-3">
-          {/* Go to movie page */}
           <button
             onClick={handleGoToMovie}
             className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl bg-accent text-bg-primary text-sm font-medium hover:scale-105 transition-transform duration-300 cursor-pointer"
@@ -168,11 +206,10 @@ function ModalContent({
             <ChevronRight size={15} />
           </button>
 
-          {/* Add to favorites */}
           <button
             onClick={toggleFavorite}
             aria-label="Aggiungi ai preferiti"
-            className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all duration-300 cursor-pointer ${
+            className={`w-11 h-11 flex items-center justify-center rounded-xl border transition-all duration-300 cursor-pointer ${
               isFavorite
                 ? "border-heart text-heart"
                 : "border-border-subtle text-text-secondary hover:border-heart hover:text-heart"
@@ -181,11 +218,10 @@ function ModalContent({
             <Heart size={16} className={isFavorite ? "fill-heart" : ""} />
           </button>
 
-          {/* Add to watchlist */}
           <button
             onClick={toggleWatchlist}
             aria-label="Aggiungi alla watchlist"
-            className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all duration-300 cursor-pointer ${
+            className={`w-11 h-11 flex items-center justify-center rounded-xl border transition-all duration-300 cursor-pointer ${
               isWatchlist
                 ? "border-accent text-accent"
                 : "border-border-subtle text-text-secondary hover:border-accent hover:text-accent"
@@ -193,18 +229,18 @@ function ModalContent({
           >
             <Bookmark size={16} className={isWatchlist ? "fill-accent" : ""} />
           </button>
+
+          <ShareButton
+            title={movie.title}
+            description={movie.plot ?? undefined}
+            url={`https://www.movieapp.it/${movie.type === "serie" ? "serie" : "movie"}/${movie.id}`}
+          />
         </div>
       </div>
     </motion.div>
   );
 }
 
-/* =============================================
-   MOVIE MODAL COMPONENT
-   Reusable modal with trailer, movie info,
-   and action buttons. Used in hero banner,
-   gallery cards and search results.
-   ============================================= */
 export default function MovieModal({ movie, onClose }: MovieModalProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -212,7 +248,6 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
     setMounted(true);
   }, []);
 
-  /* ── Close on Escape key ── */
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -221,7 +256,6 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
-  /* ── Prevent body scroll when open ── */
   useEffect(() => {
     document.body.style.overflow = movie ? "hidden" : "";
     return () => {
@@ -241,7 +275,6 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
           animate="visible"
           exit="hidden"
         >
-          {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm"
             onClick={onClose}
@@ -250,7 +283,6 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
             animate="visible"
             exit="hidden"
           />
-
           <ModalContent movie={movie} onClose={onClose} />
         </motion.div>
       )}

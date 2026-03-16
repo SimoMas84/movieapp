@@ -16,6 +16,44 @@ import {
 } from "@/lib/tmdb";
 import MovieGallery from "@/components/layout/MovieGallery";
 import { toMovie } from "@/lib/utils";
+import type { Metadata } from "next";
+import ShareButton from "@/components/ui/ShareButton";
+
+export async function generateMetadata({
+  params,
+}: PersonPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const person = await getPersonDetail(Number(id)).catch(() => null);
+  if (!person) return {};
+
+  const title = person.name;
+  const role = person.known_for_department === "Acting" ? "Attore" : "Regista";
+  const description = person.biography
+    ? person.biography.slice(0, 160)
+    : `Scopri la filmografia di ${title} su MovieApp`;
+  const image = person.profile_path
+    ? tmdbImage.posterLarge(person.profile_path)
+    : null;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${title} — ${role} | MovieApp`,
+      description,
+      url: `https://www.movieapp.it/person/${id}`,
+      images: image
+        ? [{ url: image, width: 500, height: 750, alt: title }]
+        : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} — ${role} | MovieApp`,
+      description,
+      images: image ? [image] : [],
+    },
+  };
+}
 
 interface PersonPageProps {
   params: Promise<{ id: string }>;
@@ -90,16 +128,23 @@ export default async function PersonPage({ params }: PersonPageProps) {
 
           {/* Info */}
           <div className="flex-1 max-w-3xl">
-            {/* Department badge */}
-            <span
-              className={`text-xs px-2 py-1 rounded-sm border inline-block ${
-                isActor
-                  ? "border-accent/30 text-accent bg-accent/10"
-                  : "border-blue-400/30 text-blue-400 bg-blue-400/10"
-              }`}
-            >
-              {isActor ? "Attore" : "Regista"}
-            </span>
+            {/* Department badge + Share */}
+            <div className="flex items-center gap-3 mb-4 mt-0">
+              <span
+                className={`text-xs px-2 py-1 rounded-sm border inline-block ${
+                  isActor
+                    ? "border-accent/30 text-accent bg-accent/10"
+                    : "border-blue-400/30 text-blue-400 bg-blue-400/10"
+                }`}
+              >
+                {isActor ? "Attore" : "Regista"}
+              </span>
+              <ShareButton
+                title={person.name}
+                description={`Scopri la filmografia di ${person.name} su MovieApp`}
+                url={`https://www.movieapp.it/person/${id}`}
+              />
+            </div>
 
             {/* Name */}
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-light text-text-primary mb-4 mt-4 leading-tight">

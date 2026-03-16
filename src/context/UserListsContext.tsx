@@ -1,5 +1,12 @@
 "use client";
 
+/* ============================================================
+   USER LISTS CONTEXT
+   Loads favorites and watchlist IDs once on mount (or on login).
+   All toggle operations update local state optimistically and
+   sync with Supabase in the background.
+   ============================================================ */
+
 import {
   createContext,
   useContext,
@@ -12,10 +19,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/useToast";
 
-/* ============================================================
-   TYPES
-   ============================================================ */
-
+/* ── Types ── */
 type MediaType = "movie" | "tv";
 
 interface ListItem {
@@ -28,20 +32,14 @@ interface UserListsContextValue {
   isFavorite: (tmdbId: number, mediaType: MediaType) => boolean;
   /** Returns true if the given item is in watchlist */
   isWatchlist: (tmdbId: number, mediaType: MediaType) => boolean;
-  /**
-   * Toggles favorite state for an item.
-   * onRemoved is called after successful removal (used by FavoritesGrid).
-   */
+  /** Toggles favorite state. onRemoved is called after successful removal */
   toggleFavorite: (
     e: React.MouseEvent,
     tmdbId: number,
     mediaType: MediaType,
     onRemoved?: () => void,
   ) => Promise<void>;
-  /**
-   * Toggles watchlist state for an item.
-   * onRemoved is called after successful removal (used by WatchlistGrid).
-   */
+  /** Toggles watchlist state. onRemoved is called after successful removal */
   toggleWatchlist: (
     e: React.MouseEvent,
     tmdbId: number,
@@ -52,39 +50,24 @@ interface UserListsContextValue {
   isLoading: boolean;
 }
 
-/* ============================================================
-   CONTEXT
-   ============================================================ */
-
+/* ── Context ── */
 const UserListsContext = createContext<UserListsContextValue | null>(null);
 
-/* ============================================================
-   HELPERS
-   A Set of strings like "12345:movie" for O(1) lookup.
-   ============================================================ */
-
+/* ── Key helper — "12345:movie" for O(1) Set lookup ── */
 const toKey = (tmdbId: number, mediaType: MediaType): string =>
   `${tmdbId}:${mediaType}`;
 
-/* ============================================================
-   PROVIDER
-   Loads favorites and watchlist IDs once on mount (or on login).
-   All toggle operations update local state optimistically and
-   sync with Supabase in the background.
-   ============================================================ */
-
+/* ── Provider ── */
 export function UserListsProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createClient();
   const { toast } = useToast();
-
-  /* ── Keep a stable ref to the current user id ── */
   const userIdRef = useRef<string | null>(null);
 
-  /* ── Load all IDs from Supabase (only IDs, very lightweight) ── */
+  /* ── Load all IDs from Supabase (IDs only, very lightweight) ── */
   const loadLists = useCallback(async (userId: string): Promise<void> => {
     const [{ data: favRows }, { data: watchRows }] = await Promise.all([
       supabase
@@ -112,7 +95,6 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
 
   /* ── Subscribe to auth state changes ── */
   useEffect(() => {
-    /* Check current session immediately */
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         userIdRef.current = user.id;
@@ -122,18 +104,15 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    /* Listen for login / logout */
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const userId = session?.user?.id ?? null;
       userIdRef.current = userId;
-
       if (userId) {
         setIsLoading(true);
         loadLists(userId);
       } else {
-        /* User logged out — clear lists */
         setFavorites(new Set());
         setWatchlist(new Set());
         setIsLoading(false);
@@ -177,7 +156,6 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
       const key = toKey(tmdbId, mediaType);
       const wasInList = favorites.has(key);
 
-      /* Optimistic update */
       setFavorites((prev) => {
         const next = new Set(prev);
         wasInList ? next.delete(key) : next.add(key);
@@ -191,9 +169,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
           .eq("user_id", user.id)
           .eq("tmdb_id", tmdbId)
           .eq("media_type", mediaType);
-
         if (error) {
-          /* Revert on error */
           setFavorites((prev) => new Set([...prev, key]));
           toast.error("Errore durante la rimozione dai preferiti");
         } else {
@@ -203,9 +179,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase
           .from("favorites")
           .insert({ user_id: user.id, tmdb_id: tmdbId, media_type: mediaType });
-
         if (error) {
-          /* Revert on error */
           setFavorites((prev) => {
             const next = new Set(prev);
             next.delete(key);
@@ -239,7 +213,6 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
       const key = toKey(tmdbId, mediaType);
       const wasInList = watchlist.has(key);
 
-      /* Optimistic update */
       setWatchlist((prev) => {
         const next = new Set(prev);
         wasInList ? next.delete(key) : next.add(key);
@@ -253,9 +226,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
           .eq("user_id", user.id)
           .eq("tmdb_id", tmdbId)
           .eq("media_type", mediaType);
-
         if (error) {
-          /* Revert on error */
           setWatchlist((prev) => new Set([...prev, key]));
           toast.error("Errore durante la rimozione dalla watchlist");
         } else {
@@ -265,9 +236,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase
           .from("watchlist")
           .insert({ user_id: user.id, tmdb_id: tmdbId, media_type: mediaType });
-
         if (error) {
-          /* Revert on error */
           setWatchlist((prev) => {
             const next = new Set(prev);
             next.delete(key);
@@ -295,15 +264,10 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/* ============================================================
-   HOOK
-   Throws if used outside UserListsProvider.
-   ============================================================ */
-
+/* ── Hook — throws if used outside UserListsProvider ── */
 export function useUserLists(): UserListsContextValue {
   const ctx = useContext(UserListsContext);
-  if (!ctx) {
+  if (!ctx)
     throw new Error("useUserLists must be used inside UserListsProvider");
-  }
   return ctx;
 }

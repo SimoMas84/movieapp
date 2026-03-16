@@ -1,10 +1,16 @@
 "use client";
 
+/* ============================================================
+   NAV DESKTOP COMPONENT
+   Horizontal navigation links with active state highlight.
+   ============================================================ */
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Heart, Bookmark, Users, Film, Tv } from "lucide-react";
 
-const navLinks = [
+/* ── Navigation links configuration ── */
+const NAV_LINKS = [
   { title: "Home", href: "/", icon: Home },
   { title: "Film", href: "/films", icon: Film },
   { title: "Serie", href: "/series", icon: Tv },
@@ -18,20 +24,19 @@ export default function NavDesktop() {
 
   return (
     <nav className="flex items-center gap-6">
-      {navLinks.map((link) => {
-        const Icon = link.icon;
+      {NAV_LINKS.map(({ href, title, icon: Icon }) => {
         const isActive =
-          link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+          href === "/" ? pathname === "/" : pathname.startsWith(href);
         return (
           <Link
-            key={link.href}
-            href={link.href}
+            key={href}
+            href={href}
             className={`flex items-center gap-2 text-sm font-medium transition-colors duration-300 ${
               isActive ? "text-accent" : "text-text-secondary hover:text-accent"
             }`}
           >
             <Icon size={15} />
-            {link.title}
+            {title}
           </Link>
         );
       })}
