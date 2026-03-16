@@ -6,6 +6,7 @@ import LayoutShell from "@/components/layout/LayoutShell";
 import NavbarWrapper from "@/components/layout/NavbarWrapper";
 import { ToastProvider } from "@/context/ToastContext";
 import { UserListsProvider } from "@/context/UserListsContext";
+import { Analytics } from "@vercel/analytics/next";
 
 /* =============================================
    FONT CONFIGURATION
@@ -22,7 +23,7 @@ const rubik = Rubik({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.movieapp.it"),
   title: {
-    default: "MovieApp — Scopri Film e Serie TV",
+    default: "MovieApp - Scopri Film e Serie",
     template: "%s | MovieApp",
   },
   description:
@@ -79,6 +80,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="it" className={rubik.className}>
+      <Analytics />
       <body className="antialiased">
         <ToastProvider>
           <UserListsProvider>

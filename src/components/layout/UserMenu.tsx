@@ -1,12 +1,5 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import { motion, AnimatePresence, type Variants } from "motion/react";
-import Link from "next/link";
-import { User, UserCircle, LogOut } from "lucide-react";
-import { logout } from "@/app/auth/actions";
-
 /* ============================================================
    USER MENU COMPONENT
    Accent dropdown that appears below the account button.
@@ -14,17 +7,25 @@ import { logout } from "@/app/auth/actions";
    Used on both mobile and desktop.
    ============================================================ */
 
+import { useState, useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence, type Variants } from "motion/react";
+import Link from "next/link";
+import { User, UserCircle, LogOut } from "lucide-react";
+import { logout } from "@/app/auth/actions";
+
 interface UserMenuProps {
   firstName: string;
   isMobile?: boolean;
 }
 
-const perspectiveStyle = {
+/* ── Perspective style for link animation ── */
+const PERSPECTIVE_STYLE = {
   perspective: "120px",
   perspectiveOrigin: "bottom",
 } as const;
 
-/* ── Menu items animation — same as navLinkVariants ── */
+/* ── Menu items — same animation as navLinkVariants ── */
 const itemVariants: Variants = {
   initial: { opacity: 0, rotateX: 90, y: -8 },
   enter: (i: number) => ({
@@ -52,6 +53,9 @@ const dropdownVariants: Variants = {
   },
 };
 
+/* ── Static menu items ── */
+const MENU_ITEMS = [{ label: "Profilo", href: "/profile", icon: UserCircle }];
+
 export default function UserMenu({
   firstName,
   isMobile = false,
@@ -61,8 +65,14 @@ export default function UserMenu({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
 
+  /* ── Mount check for portal ── */
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  /* ── Close on route change ── */
+  useEffect(() => {
+    closeMenu();
   }, []);
 
   const toggleMenu = useCallback(() => {
@@ -78,16 +88,9 @@ export default function UserMenu({
 
   const closeMenu = useCallback(() => setIsOpen(false), []);
 
-  /* ── Close on route change ── */
-  useEffect(() => {
-    if (isOpen) closeMenu();
-  }, []);
-
-  const menuItems = [{ label: "Profilo", href: "/profile", icon: UserCircle }];
-
   return (
     <>
-      {/* ── Trigger button ── */}
+      {/* Trigger button */}
       <button
         ref={buttonRef}
         onClick={toggleMenu}
@@ -102,7 +105,7 @@ export default function UserMenu({
         {!isMobile && <span className="text-bg-primary">{firstName}</span>}
       </button>
 
-      {/* ── Dropdown via portal ── */}
+      {/* Dropdown via portal */}
       {mounted &&
         createPortal(
           <AnimatePresence>
@@ -127,37 +130,34 @@ export default function UserMenu({
                   exit="closed"
                 >
                   <div className="flex flex-col px-6 py-5 gap-1">
-                    {menuItems.map((item, i) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={item.href} style={perspectiveStyle}>
-                          <motion.div
-                            custom={i}
-                            variants={itemVariants}
-                            initial="initial"
-                            animate="enter"
-                            exit="exit"
+                    {MENU_ITEMS.map(({ href, label, icon: Icon }, i) => (
+                      <div key={href} style={PERSPECTIVE_STYLE}>
+                        <motion.div
+                          custom={i}
+                          variants={itemVariants}
+                          initial="initial"
+                          animate="enter"
+                          exit="exit"
+                        >
+                          <Link
+                            href={href}
+                            onClick={closeMenu}
+                            className="flex items-center gap-3 text-lg font-light text-bg-primary hover:opacity-60 transition-opacity duration-200 py-1"
                           >
-                            <Link
-                              href={item.href}
-                              onClick={closeMenu}
-                              className="flex items-center gap-3 text-lg font-light text-bg-primary hover:opacity-60 transition-opacity duration-200 py-1"
-                            >
-                              <Icon size={18} className="text-bg-primary" />
-                              {item.label}
-                            </Link>
-                          </motion.div>
-                        </div>
-                      );
-                    })}
+                            <Icon size={18} className="text-bg-primary" />
+                            {label}
+                          </Link>
+                        </motion.div>
+                      </div>
+                    ))}
 
                     {/* Divider */}
                     <div className="border-t border-bg-primary/20 my-2" />
 
                     {/* Logout */}
-                    <div style={perspectiveStyle}>
+                    <div style={PERSPECTIVE_STYLE}>
                       <motion.div
-                        custom={menuItems.length}
+                        custom={MENU_ITEMS.length}
                         variants={itemVariants}
                         initial="initial"
                         animate="enter"

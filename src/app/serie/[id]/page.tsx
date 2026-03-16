@@ -6,6 +6,8 @@ import { formatRating, toMovie } from "@/lib/utils";
 import CastGallery from "@/components/ui/CastGallery";
 import TrailerPlayer from "@/components/ui/TrailerPlayer";
 import MovieActions from "@/components/ui/MovieActions";
+import type { Metadata } from "next";
+import ShareButton from "@/components/ui/ShareButton";
 import {
   getSeriesDetail,
   getSeriesCredits,
@@ -15,6 +17,41 @@ import {
   getGenres,
   tmdbImage,
 } from "@/lib/tmdb";
+
+export async function generateMetadata({
+  params,
+}: SeriePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const serie = await getSeriesDetail(Number(id)).catch(() => null);
+  if (!serie) return {};
+
+  const title = serie.name ?? "Serie TV";
+  const description = serie.overview
+    ? serie.overview.slice(0, 160)
+    : `Scopri ${title} su MovieApp`;
+  const image = serie.poster_path
+    ? tmdbImage.posterLarge(serie.poster_path)
+    : null;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${title} | MovieApp`,
+      description,
+      url: `https://www.movieapp.it/serie/${id}`,
+      images: image
+        ? [{ url: image, width: 500, height: 750, alt: title }]
+        : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | MovieApp`,
+      description,
+      images: image ? [image] : [],
+    },
+  };
+}
 
 /* =============================================
    PROPS
@@ -158,7 +195,14 @@ export default async function SeriePage({ params }: SeriePageProps) {
               </p>
 
               {/* Action buttons */}
-              <MovieActions movie={serieObj} />
+              <div className="flex items-center gap-3">
+                <MovieActions movie={serieObj} />
+                <ShareButton
+                  title={serie.name ?? ""}
+                  description={serie.overview?.slice(0, 160)}
+                  url={`https://www.movieapp.it/serie/${id}`}
+                />
+              </div>
             </div>
           </div>
         </div>

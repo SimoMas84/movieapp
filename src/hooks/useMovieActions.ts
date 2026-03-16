@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback } from "react";
-import { Movie } from "@/types/movie";
-import { useUserLists } from "@/context/UserListsContext";
-
 /* ============================================================
    useMovieActions HOOK
    Thin wrapper around UserListsContext for a single movie.
    No Supabase queries here — state comes from the global
    context which loads once on login.
    ============================================================ */
+
+import { useCallback } from "react";
+import { Movie } from "@/types/movie";
+import { useUserLists } from "@/context/UserListsContext";
 
 interface UseMovieActionsOptions {
   /** Called after the item is successfully removed from favorites */
@@ -27,30 +27,27 @@ interface UseMovieActionsReturn {
 
 export function useMovieActions(
   movie: Movie,
-  options: UseMovieActionsOptions = {}
+  options: UseMovieActionsOptions = {},
 ): UseMovieActionsReturn {
   const { onFavoriteRemoved, onWatchlistRemoved } = options;
-  const { isFavorite, isWatchlist, toggleFavorite, toggleWatchlist } =
-    useUserLists();
+  const { isFavorite, isWatchlist, toggleFavorite, toggleWatchlist } = useUserLists();
 
   const mediaType = movie.type === "film" ? "movie" : "tv";
 
   const handleToggleFavorite = useCallback(
-    (e: React.MouseEvent) =>
-      toggleFavorite(e, movie.id, mediaType, onFavoriteRemoved),
-    [toggleFavorite, movie.id, mediaType, onFavoriteRemoved]
+    (e: React.MouseEvent) => toggleFavorite(e, movie.id, mediaType, onFavoriteRemoved),
+    [toggleFavorite, movie.id, mediaType, onFavoriteRemoved],
   );
 
   const handleToggleWatchlist = useCallback(
-    (e: React.MouseEvent) =>
-      toggleWatchlist(e, movie.id, mediaType, onWatchlistRemoved),
-    [toggleWatchlist, movie.id, mediaType, onWatchlistRemoved]
+    (e: React.MouseEvent) => toggleWatchlist(e, movie.id, mediaType, onWatchlistRemoved),
+    [toggleWatchlist, movie.id, mediaType, onWatchlistRemoved],
   );
 
   return {
-    isFavorite: isFavorite(movie.id, mediaType),
-    isWatchlist: isWatchlist(movie.id, mediaType),
-    toggleFavorite: handleToggleFavorite,
+    isFavorite:      isFavorite(movie.id, mediaType),
+    isWatchlist:     isWatchlist(movie.id, mediaType),
+    toggleFavorite:  handleToggleFavorite,
     toggleWatchlist: handleToggleWatchlist,
   };
 }

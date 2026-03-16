@@ -10,6 +10,8 @@ import { formatRating, toMovie } from "@/lib/utils";
 import CastGallery from "@/components/ui/CastGallery";
 import TrailerPlayer from "@/components/ui/TrailerPlayer";
 import MovieActions from "@/components/ui/MovieActions";
+import type { Metadata } from "next";
+import ShareButton from "@/components/ui/ShareButton";
 import {
   getMovieDetail,
   getMovieCredits,
@@ -19,6 +21,41 @@ import {
   getGenres,
   tmdbImage,
 } from "@/lib/tmdb";
+
+export async function generateMetadata({
+  params,
+}: MoviePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const movie = await getMovieDetail(Number(id)).catch(() => null);
+  if (!movie) return {};
+
+  const title = movie.title ?? "Film";
+  const description = movie.overview
+    ? movie.overview.slice(0, 160)
+    : `Scopri ${title} su MovieApp`;
+  const image = movie.poster_path
+    ? tmdbImage.posterLarge(movie.poster_path)
+    : null;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${title} | MovieApp`,
+      description,
+      url: `https://www.movieapp.it/movie/${id}`,
+      images: image
+        ? [{ url: image, width: 500, height: 750, alt: title }]
+        : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | MovieApp`,
+      description,
+      images: image ? [image] : [],
+    },
+  };
+}
 
 interface MoviePageProps {
   params: Promise<{ id: string }>;
@@ -143,7 +180,14 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 {movie.overview}
               </p>
 
-              <MovieActions movie={movieObj} />
+              <div className="flex items-center gap-3">
+                <MovieActions movie={movieObj} />
+                <ShareButton
+                  title={movie.title ?? ""}
+                  description={movie.overview?.slice(0, 160)}
+                  url={`https://www.movieapp.it/movie/${id}`}
+                />
+              </div>
             </div>
           </div>
         </div>

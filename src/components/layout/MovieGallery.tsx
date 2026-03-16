@@ -1,5 +1,14 @@
 "use client";
 
+/* ============================================================
+   MOVIE GALLERY COMPONENT
+   Horizontal scrolling gallery with free mode,
+   desktop navigation arrows and MovieModal.
+   Supports "upcoming" variant for unreleased movies.
+   Supports onFavoriteRemoved / onWatchlistRemoved
+   callbacks for Favorites and Watchlist pages.
+   ============================================================ */
+
 import { useState, useCallback } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, FreeMode } from "swiper/modules";
@@ -9,27 +18,14 @@ import MovieModal from "@/components/ui/MovieModal";
 import { Movie } from "@/types/movie";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-/* =============================================
-   PROPS INTERFACE
-   ============================================= */
 interface MovieGalleryProps {
   title?: string;
   movies: Movie[];
   variant?: "default" | "upcoming";
-  /** If provided, called with movie.id after successful removal from favorites */
   onFavoriteRemoved?: (movieId: number) => void;
-  /** If provided, called with movie.id after successful removal from watchlist */
   onWatchlistRemoved?: (movieId: number) => void;
 }
 
-/* =============================================
-   MOVIE GALLERY COMPONENT
-   Horizontal scrolling gallery with free mode,
-   desktop navigation arrows and MovieModal.
-   Supports "upcoming" variant for unreleased movies.
-   Supports onFavoriteRemoved / onWatchlistRemoved
-   callbacks for Favorites and Watchlist pages.
-   ============================================= */
 export default function MovieGallery({
   title,
   movies,
@@ -39,47 +35,22 @@ export default function MovieGallery({
 }: MovieGalleryProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  /* ── Unique gallery ID for navigation arrows ── */
   const galleryId = (title ?? "gallery").replace(/\s/g, "");
 
-  /* ── Fetch trailer and open modal ── */
-  const handleSelect = useCallback(async (movie: Movie) => {
-    const type = movie.type === "serie" ? "tv" : "movie";
-    try {
-      const [trailerRes, detailRes] = await Promise.all([
-        fetch(`/api/trailer?id=${movie.id}&type=${type}`),
-        fetch(`/api/detail?id=${movie.id}&type=${type}`),
-      ]);
-      const { trailerKey } = await trailerRes.json();
-      const { runtime, numberOfSeasons, numberOfEpisodes } =
-        await detailRes.json();
-      setSelectedMovie({
-        ...movie,
-        trailerKey,
-        runtime,
-        numberOfSeasons,
-        numberOfEpisodes,
-      });
-    } catch {
-      setSelectedMovie(movie);
-    }
-  }, []);
-
-  const handleClose = useCallback(() => {
-    setSelectedMovie(null);
+  /* ── Open modal immediately — extra data loads inside modal ── */
+  const handleSelect = useCallback((movie: Movie) => {
+    setSelectedMovie(movie);
   }, []);
 
   return (
     <>
       <section className="w-full py-8">
-        {/* ── Section title ── */}
         {title && (
           <h2 className="text-xl md:text-2xl font-light text-text-primary px-6 md:px-10 mb-4">
             {title}
           </h2>
         )}
 
-        {/* ── Gallery ── */}
         <div className="relative">
           <Swiper
             modules={[Navigation, FreeMode]}
@@ -130,7 +101,6 @@ export default function MovieGallery({
             ))}
           </Swiper>
 
-          {/* ── Desktop arrows ── */}
           <button
             aria-label="Scorri a sinistra"
             className={`prev-${galleryId} hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-md bg-bg-primary/80 backdrop-blur-sm border border-border-subtle text-text-secondary hover:border-accent hover:text-accent transition-all duration-300`}
@@ -146,8 +116,10 @@ export default function MovieGallery({
         </div>
       </section>
 
-      {/* ── Movie modal ── */}
-      <MovieModal movie={selectedMovie} onClose={handleClose} />
+      <MovieModal
+        movie={selectedMovie}
+        onClose={() => setSelectedMovie(null)}
+      />
     </>
   );
 }

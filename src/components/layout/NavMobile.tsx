@@ -1,5 +1,12 @@
 "use client";
 
+/* ============================================================
+   NAV MOBILE COMPONENT
+   Expanding full-screen menu for mobile.
+   Backdrop and menu rendered via portal to avoid stacking issues.
+   Scroll is locked while menu is open.
+   ============================================================ */
+
 import { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -9,10 +16,8 @@ import { Home, Heart, Bookmark, Users, Film, Tv } from "lucide-react";
 import NavButton from "./NavButton";
 import { menuContainer, navLinkVariants } from "@/lib/animations";
 
-/* =============================================
-   NAVIGATION LINKS DATA
-   ============================================= */
-const navLinks = [
+/* ── Navigation links configuration ── */
+const NAV_LINKS = [
   { title: "Home", href: "/", icon: Home },
   { title: "Film", href: "/films", icon: Film },
   { title: "Serie", href: "/series", icon: Tv },
@@ -21,26 +26,17 @@ const navLinks = [
   { title: "Preferiti", href: "/favorites", icon: Heart },
 ];
 
-/* =============================================
-   CONSTANTS
-   ============================================= */
-const perspectiveStyle = {
+/* ── Perspective style for link animation ── */
+const PERSPECTIVE_STYLE = {
   perspective: "120px",
   perspectiveOrigin: "bottom",
 } as const;
 
-/* =============================================
-   NAV MOBILE COMPONENT
-   Expanding menu for mobile.
-   Both backdrop and menu rendered via portal.
-   Scroll is locked when menu is open.
-   ============================================= */
 export default function NavMobile() {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
-  /* ── Handlers ── */
   const toggleMenu = useCallback(() => setIsOpen((prev) => !prev), []);
   const closeMenu = useCallback(() => setIsOpen(false), []);
 
@@ -49,13 +45,9 @@ export default function NavMobile() {
     setMounted(true);
   }, []);
 
-  /* ── Block scroll when menu is open ── */
+  /* ── Lock scroll when menu is open ── */
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
@@ -63,7 +55,6 @@ export default function NavMobile() {
 
   return (
     <>
-      {/* ── Backdrop + Menu via portal — outside navbar stacking context ── */}
       {mounted &&
         createPortal(
           <AnimatePresence>
@@ -94,14 +85,13 @@ export default function NavMobile() {
                 >
                   <div className="flex flex-col justify-center h-full px-10">
                     <div className="flex flex-col gap-3 mx-auto">
-                      {navLinks.map((link, i) => {
-                        const Icon = link.icon;
+                      {NAV_LINKS.map(({ href, title, icon: Icon }, i) => {
                         const isActive =
-                          link.href === "/"
+                          href === "/"
                             ? pathname === "/"
-                            : pathname.startsWith(link.href);
+                            : pathname.startsWith(href);
                         return (
-                          <div key={link.href} style={perspectiveStyle}>
+                          <div key={href} style={PERSPECTIVE_STYLE}>
                             <motion.div
                               custom={i}
                               variants={navLinkVariants}
@@ -110,7 +100,7 @@ export default function NavMobile() {
                               exit="exit"
                             >
                               <Link
-                                href={link.href}
+                                href={href}
                                 onClick={closeMenu}
                                 className={`flex items-center gap-3 text-2xl font-light transition-opacity duration-300 py-1 ${
                                   isActive
@@ -119,7 +109,7 @@ export default function NavMobile() {
                                 }`}
                               >
                                 <Icon size={20} className="text-bg-primary" />
-                                {link.title}
+                                {title}
                               </Link>
                             </motion.div>
                           </div>
@@ -134,7 +124,7 @@ export default function NavMobile() {
           document.body,
         )}
 
-      {/* ── Menu button — above everything ── */}
+      {/* Menu button — above everything */}
       <div className="relative z-[103]">
         <NavButton isOpen={isOpen} onClick={toggleMenu} />
       </div>
