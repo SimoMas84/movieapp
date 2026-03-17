@@ -19,6 +19,7 @@ import {
 } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/useToast";
+import { Movie } from "@/types/movie";
 
 /* ── Types ── */
 type MediaType = "movie" | "tv";
@@ -29,26 +30,25 @@ interface ListItem {
 }
 
 interface UserListsContextValue {
-  /** Returns true if the given item is in favorites */
   isFavorite: (tmdbId: number, mediaType: MediaType) => boolean;
-  /** Returns true if the given item is in watchlist */
   isWatchlist: (tmdbId: number, mediaType: MediaType) => boolean;
-  /** Toggles favorite state. onRemoved is called after successful removal */
   toggleFavorite: (
     e: React.MouseEvent,
     tmdbId: number,
     mediaType: MediaType,
     onRemoved?: () => void,
   ) => Promise<void>;
-  /** Toggles watchlist state. onRemoved is called after successful removal */
   toggleWatchlist: (
     e: React.MouseEvent,
     tmdbId: number,
     mediaType: MediaType,
     onRemoved?: () => void,
   ) => Promise<void>;
-  /** True while the initial load from Supabase is in progress */
   isLoading: boolean;
+  /** Register a callback fired when a favorite is added on another device */
+  setOnFavoriteInsert: (cb: ((movie: Movie) => void) | null) => void;
+  /** Register a callback fired when a watchlist item is added on another device */
+  setOnWatchlistInsert: (cb: ((movie: Movie) => void) | null) => void;
 }
 
 /* ── Context ── */
@@ -57,6 +57,40 @@ const UserListsContext = createContext<UserListsContextValue | null>(null);
 /* ── Key helper — "12345:movie" for O(1) Set lookup ── */
 const toKey = (tmdbId: number, mediaType: MediaType): string =>
   `${tmdbId}:${mediaType}`;
+
+/* ── Fetch a single movie/serie via API route and convert to Movie ── */
+async function fetchMovieById(
+  tmdbId: number,
+  mediaType: MediaType,
+): Promise<Movie | null> {
+  try {
+    const type = mediaType === "movie" ? "movie" : "tv";
+    const res = await fetch(`/api/detail?id=${tmdbId}&type=${type}&full=true`);
+    const data = await res.json();
+
+    return {
+      id: tmdbId,
+      title: data.title ?? "",
+      type: mediaType === "movie" ? "film" : "serie",
+      poster: data.poster_path ?? null,
+      backdrop: data.backdrop_path ?? null,
+      year: new Date(data.release_date ?? "").getFullYear() || 0,
+      rating: data.vote_average ?? 0,
+      genre: (data.genres ?? []).map((g: { name: string }) => g.name),
+      plot: data.overview ?? "",
+      director: "",
+      cast: [],
+      awards: [],
+      upcoming: false,
+      trailerKey: null,
+      runtime: data.runtime,
+      numberOfSeasons: data.number_of_seasons,
+      numberOfEpisodes: data.number_of_episodes,
+    };
+  } catch {
+    return null;
+  }
+}
 
 /* ── Provider ── */
 export function UserListsProvider({ children }: { children: ReactNode }) {
@@ -69,7 +103,24 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
   const userIdRef = useRef<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  /* ── Load all IDs from Supabase (IDs only, very lightweight) ── */
+  /* ── Insert callbacks — registered by FavoritesGrid / WatchlistGrid ── */
+  const onFavoriteInsertRef = useRef<((movie: Movie) => void) | null>(null);
+  const onWatchlistInsertRef = useRef<((movie: Movie) => void) | null>(null);
+
+  const setOnFavoriteInsert = useCallback(
+    (cb: ((movie: Movie) => void) | null) => {
+      onFavoriteInsertRef.current = cb;
+    },
+    [],
+  );
+  const setOnWatchlistInsert = useCallback(
+    (cb: ((movie: Movie) => void) | null) => {
+      onWatchlistInsertRef.current = cb;
+    },
+    [],
+  );
+
+  /* ── Load all IDs from Supabase ── */
   const loadLists = useCallback(async (userId: string): Promise<void> => {
     const [{ data: favRows }, { data: watchRows }] = await Promise.all([
       supabase
@@ -94,93 +145,68 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  /* ── Realtime subscription — starts only after userId is confirmed ── */
+  /* ── Realtime subscription ── */
   const subscribeRealtime = useCallback(
     (userId: string) => {
-      /* ── Remove existing channel if any ── */
       if (channelRef.current) supabase.removeChannel(channelRef.current);
 
       channelRef.current = supabase
         .channel(`user-lists-${userId}`)
 
-        /* ── Favorites INSERT ── */
         .on(
           "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "favorites",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const { tmdb_id, media_type } = payload.new as ListItem;
+          { event: "INSERT", schema: "public", table: "favorites" },
+          async (payload) => {
+            const row = payload.new as ListItem & { user_id: string };
+            /* ── Update Set ── */
             setFavorites(
-              (prev) => new Set([...prev, toKey(tmdb_id, media_type)]),
+              (prev) => new Set([...prev, toKey(row.tmdb_id, row.media_type)]),
             );
+            /* ── Notify FavoritesGrid if registered ── */
+            if (onFavoriteInsertRef.current) {
+              const movie = await fetchMovieById(row.tmdb_id, row.media_type);
+              if (movie) onFavoriteInsertRef.current(movie);
+            }
           },
         )
 
-        /* ── Favorites DELETE ── */
         .on(
           "postgres_changes",
-          {
-            event: "DELETE",
-            schema: "public",
-            table: "favorites",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const { tmdb_id, media_type } = payload.old as ListItem;
-            setFavorites((prev) => {
-              const next = new Set(prev);
-              next.delete(toKey(tmdb_id, media_type));
-              return next;
-            });
+          { event: "DELETE", schema: "public", table: "favorites" },
+          () => {
+            loadLists(userId);
           },
         )
 
-        /* ── Watchlist INSERT ── */
         .on(
           "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "watchlist",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const { tmdb_id, media_type } = payload.new as ListItem;
+          { event: "INSERT", schema: "public", table: "watchlist" },
+          async (payload) => {
+            const row = payload.new as ListItem & { user_id: string };
             setWatchlist(
-              (prev) => new Set([...prev, toKey(tmdb_id, media_type)]),
+              (prev) => new Set([...prev, toKey(row.tmdb_id, row.media_type)]),
             );
+            if (onWatchlistInsertRef.current) {
+              const movie = await fetchMovieById(row.tmdb_id, row.media_type);
+              if (movie) onWatchlistInsertRef.current(movie);
+            }
           },
         )
 
-        /* ── Watchlist DELETE ── */
         .on(
           "postgres_changes",
-          {
-            event: "DELETE",
-            schema: "public",
-            table: "watchlist",
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const { tmdb_id, media_type } = payload.old as ListItem;
-            setWatchlist((prev) => {
-              const next = new Set(prev);
-              next.delete(toKey(tmdb_id, media_type));
-              return next;
-            });
+          { event: "DELETE", schema: "public", table: "watchlist" },
+          () => {
+            loadLists(userId);
           },
         )
 
         .subscribe();
     },
-    [supabase],
+    [supabase, loadLists],
   );
 
-  /* ── Subscribe to auth state changes + start Realtime ── */
+  /* ── Auth state changes ── */
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
@@ -202,7 +228,6 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
         loadLists(userId);
         subscribeRealtime(userId);
       } else {
-        /* ── User logged out — clear lists and channel ── */
         if (channelRef.current) supabase.removeChannel(channelRef.current);
         channelRef.current = null;
         setFavorites(new Set());
@@ -239,7 +264,6 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
       onRemoved?: () => void,
     ): Promise<void> => {
       e.stopPropagation();
-
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -296,7 +320,6 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
       onRemoved?: () => void,
     ): Promise<void> => {
       e.stopPropagation();
-
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -352,6 +375,8 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
         toggleFavorite,
         toggleWatchlist,
         isLoading,
+        setOnFavoriteInsert,
+        setOnWatchlistInsert,
       }}
     >
       {children}
@@ -359,7 +384,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/* ── Hook — throws if used outside UserListsProvider ── */
+/* ── Hook ── */
 export function useUserLists(): UserListsContextValue {
   const ctx = useContext(UserListsContext);
   if (!ctx)
@@ -435,6 +460,7 @@ export function useUserLists(): UserListsContextValue {
 //   const supabase = createClient();
 //   const { toast } = useToast();
 //   const userIdRef = useRef<string | null>(null);
+//   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
 //   /* ── Load all IDs from Supabase (IDs only, very lightweight) ── */
 //   const loadLists = useCallback(async (userId: string): Promise<void> => {
@@ -461,99 +487,43 @@ export function useUserLists(): UserListsContextValue {
 //     setIsLoading(false);
 //   }, []);
 
-//   /* ── Supabase Realtime — keeps all devices in sync ── */
-//   useEffect(() => {
-//     const userId = userIdRef.current;
-//     if (!userId) return;
+//   /* ── Realtime subscription — starts only after userId is confirmed ── */
+//   const subscribeRealtime = useCallback(
+//     (userId: string) => {
+//       if (channelRef.current) supabase.removeChannel(channelRef.current);
 
-//     const channel = supabase
-//       .channel(`user-lists-${userId}`)
+//       channelRef.current = supabase
+//         .channel(`user-lists-${userId}`)
+//         .on(
+//           "postgres_changes",
+//           { event: "*", schema: "public", table: "favorites" },
+//           () => {
+//             /* ── Reload full list on any change ── */
+//             loadLists(userId);
+//           },
+//         )
+//         .on(
+//           "postgres_changes",
+//           { event: "*", schema: "public", table: "watchlist" },
+//           () => {
+//             /* ── Reload full list on any change ── */
+//             loadLists(userId);
+//           },
+//         )
+//         .subscribe((status) => {
+//           console.log("Channel status:", status);
+//         });
+//     },
+//     [supabase, loadLists],
+//   );
 
-//       /* ── Favorites INSERT ── */
-//       .on(
-//         "postgres_changes",
-//         {
-//           event: "INSERT",
-//           schema: "public",
-//           table: "favorites",
-//           filter: `user_id=eq.${userId}`,
-//         },
-//         (payload) => {
-//           const { tmdb_id, media_type } = payload.new as ListItem;
-//           setFavorites(
-//             (prev) => new Set([...prev, toKey(tmdb_id, media_type)]),
-//           );
-//         },
-//       )
-
-//       /* ── Favorites DELETE ── */
-//       .on(
-//         "postgres_changes",
-//         {
-//           event: "DELETE",
-//           schema: "public",
-//           table: "favorites",
-//           filter: `user_id=eq.${userId}`,
-//         },
-//         (payload) => {
-//           const { tmdb_id, media_type } = payload.old as ListItem;
-//           setFavorites((prev) => {
-//             const next = new Set(prev);
-//             next.delete(toKey(tmdb_id, media_type));
-//             return next;
-//           });
-//         },
-//       )
-
-//       /* ── Watchlist INSERT ── */
-//       .on(
-//         "postgres_changes",
-//         {
-//           event: "INSERT",
-//           schema: "public",
-//           table: "watchlist",
-//           filter: `user_id=eq.${userId}`,
-//         },
-//         (payload) => {
-//           const { tmdb_id, media_type } = payload.new as ListItem;
-//           setWatchlist(
-//             (prev) => new Set([...prev, toKey(tmdb_id, media_type)]),
-//           );
-//         },
-//       )
-
-//       /* ── Watchlist DELETE ── */
-//       .on(
-//         "postgres_changes",
-//         {
-//           event: "DELETE",
-//           schema: "public",
-//           table: "watchlist",
-//           filter: `user_id=eq.${userId}`,
-//         },
-//         (payload) => {
-//           const { tmdb_id, media_type } = payload.old as ListItem;
-//           setWatchlist((prev) => {
-//             const next = new Set(prev);
-//             next.delete(toKey(tmdb_id, media_type));
-//             return next;
-//           });
-//         },
-//       )
-
-//       .subscribe();
-
-//     return () => {
-//       supabase.removeChannel(channel);
-//     };
-//   }, [userIdRef.current]);
-
-//   /* ── Subscribe to auth state changes ── */
+//   /* ── Subscribe to auth state changes + start Realtime ── */
 //   useEffect(() => {
 //     supabase.auth.getUser().then(({ data: { user } }) => {
 //       if (user) {
 //         userIdRef.current = user.id;
 //         loadLists(user.id);
+//         subscribeRealtime(user.id);
 //       } else {
 //         setIsLoading(false);
 //       }
@@ -567,15 +537,22 @@ export function useUserLists(): UserListsContextValue {
 //       if (userId) {
 //         setIsLoading(true);
 //         loadLists(userId);
+//         subscribeRealtime(userId);
 //       } else {
+//         /* ── User logged out — clear lists and channel ── */
+//         if (channelRef.current) supabase.removeChannel(channelRef.current);
+//         channelRef.current = null;
 //         setFavorites(new Set());
 //         setWatchlist(new Set());
 //         setIsLoading(false);
 //       }
 //     });
 
-//     return () => subscription.unsubscribe();
-//   }, [loadLists]);
+//     return () => {
+//       subscription.unsubscribe();
+//       if (channelRef.current) supabase.removeChannel(channelRef.current);
+//     };
+//   }, [loadLists, subscribeRealtime]);
 
 //   /* ── Lookup helpers ── */
 //   const isFavorite = useCallback(
