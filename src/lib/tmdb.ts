@@ -16,7 +16,8 @@ export const tmdbImage = {
   poster:       (path: string | null) => path ? `${IMAGE_BASE}/w500${path}`     : null,
   posterLarge:  (path: string | null) => path ? `${IMAGE_BASE}/w780${path}`     : null,
   backdrop:     (path: string | null) => path ? `${IMAGE_BASE}/w1280${path}`    : null,
-  backdropFull: (path: string | null) => path ? `${IMAGE_BASE}/original${path}` : null,
+  backdropFull: (path: string | null) => path ? `${IMAGE_BASE}/w1280${path}`    : null,
+  backdropHero: (path: string | null) => path ? `${IMAGE_BASE}/original${path}` : null,
   profile:      (path: string | null) => path ? `${IMAGE_BASE}/w185${path}`     : null,
 };
 
