@@ -197,10 +197,10 @@ function ModalContent({
           {movie.plot}
         </p>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleGoToMovie}
-            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl bg-accent text-bg-primary text-sm font-medium hover:scale-105 transition-transform duration-300 cursor-pointer"
+            className="flex-1 h-10 flex items-center justify-center rounded-xl bg-accent text-bg-primary text-xs hover:scale-105 transition-transform duration-300 cursor-pointer"
           >
             Scheda completa
             <ChevronRight size={15} />
