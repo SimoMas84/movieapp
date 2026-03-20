@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
@@ -8,18 +8,22 @@ import { ToastProvider } from "@/context/ToastContext";
 import { UserListsProvider } from "@/context/UserListsContext";
 import { Analytics } from "@vercel/analytics/next";
 
-/* =============================================
-   FONT CONFIGURATION
-   ============================================= */
+/* ── Font ── */
 const rubik = Rubik({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
   display: "swap",
 });
 
-/* =============================================
-   APP METADATA
-   ============================================= */
+/* ── Viewport — separato da metadata come richiede Next.js 16 ── */
+export const viewport: Viewport = {
+  themeColor: "#070A10",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
+/* ── Metadata ── */
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.movieapp.it"),
   title: {
@@ -39,6 +43,12 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "MovieApp" }],
   creator: "MovieApp",
+  /* ── PWA iOS meta tag ── */
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MovieApp",
+  },
   openGraph: {
     type: "website",
     locale: "it_IT",
@@ -66,21 +76,12 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-/* =============================================
-   ROOT LAYOUT
-   Provider order (outer → inner):
-   ToastProvider → UserListsProvider
-   ToastProvider must be outer because
-   UserListsContext uses toast internally.
-   Both live here so Navbar/SearchBar can
-   access them too.
-   ============================================= */
+/* ── Root Layout ── */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="it" className={rubik.className}>
-      <Analytics />
       <body className="antialiased">
         <ToastProvider>
           <UserListsProvider>
@@ -90,6 +91,7 @@ export default function RootLayout({
             <LayoutShell>{children}</LayoutShell>
           </UserListsProvider>
         </ToastProvider>
+        <Analytics />
       </body>
     </html>
   );
