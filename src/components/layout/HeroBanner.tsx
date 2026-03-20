@@ -61,12 +61,13 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
           }}
           className="w-full"
         >
-          {movies.map((movie) => (
+          {movies.map((movie, index) => (
             <SwiperSlide key={movie.id} className="rounded-xl overflow-hidden">
               <div className="relative aspect-video">
                 <HeroBannerSlide
                   movie={movie}
                   onClick={() => handleSelect(movie)}
+                  priority={index === 0}
                 />
               </div>
             </SwiperSlide>
