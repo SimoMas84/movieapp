@@ -40,6 +40,9 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://www.movieapp.it/movie/${id}`,
+    },
     openGraph: {
       title: `${title}`,
       description,
