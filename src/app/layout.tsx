@@ -42,6 +42,10 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "MovieApp" }],
   creator: "MovieApp",
+  /* ── Canonical URL ── */
+  alternates: {
+    canonical: "https://www.movieapp.it",
+  },
   /* ── PWA iOS meta tag ── */
   appleWebApp: {
     capable: true,
